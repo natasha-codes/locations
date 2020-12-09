@@ -32,3 +32,8 @@ Operations:
 - Get my contacts' locations
 - Add a contact
 - Remove a contact
+
+## Links for the future
+
+Mongo and Rust: https://devblogs.microsoft.com/cosmosdb/mongodb-and-rust/
+Authentication in Rocket: https://medium.com/@james_32022/authentication-in-rocket-feb4f7223254

@@ -9,7 +9,8 @@ extern crate serde_derive;
 
 mod location;
 
-use location::*;
+use location::{Coordinate, Location};
+use rocket_contrib::json::Json;
 
 fn main() {
     rocket::ignite()
@@ -17,9 +18,9 @@ fn main() {
         .launch();
 }
 
-#[get("/hello/<name>")]
-fn get_a_location(name: String) -> String {
-    let location = Location {
+#[get("/hello")]
+fn get_a_location() -> Json<Location> {
+    Json(Location {
         lat: Coordinate {
             hour: 1,
             min: 2,
@@ -30,7 +31,5 @@ fn get_a_location(name: String) -> String {
             min: 5,
             second: 6,
         },
-    };
-
-    format!("Hello, {}. You are at: {}", name, location)
+    })
 }
