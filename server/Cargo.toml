@@ -1,0 +1,8 @@
+[package]
+name = "locations"
+version = "0.0.1"
+authors = ["Nathan Shelly <nsnshelly@gmail.com>" "Sasha Weiss <asashaweiss@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rocket = "0.4.6"
