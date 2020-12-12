@@ -1,1 +1,6 @@
+# nix builds
+result
+
+.direnv
+
 /target

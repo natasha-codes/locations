@@ -35,7 +35,7 @@
           # `nix build`
           packages.server = naersk-lib.buildPackage {
             pname = "locations";
-            root = ./server;
+            root = ./.;
           };
           defaultPackage = packages.server;
 
