@@ -1,5 +1,7 @@
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Serialize, Deserialize)]
 pub struct Coordinate {
   pub hour: u8,

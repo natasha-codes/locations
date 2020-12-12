@@ -1,17 +1,9 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate jsonwebtoken;
-extern crate reqwest;
-#[macro_use]
-extern crate rocket;
-extern crate rocket_contrib;
-#[macro_use]
-extern crate serde_derive;
-extern crate tokio;
-
+use rocket::get;
 use rocket_contrib::json::Json;
 
-mod authentication;
+mod auth;
 mod location;
 mod user;
 
@@ -20,9 +12,8 @@ use user::User;
 
 #[tokio::main]
 async fn main() {
-    let key_set = authentication::get_msa_key_set().await;
-
-    println!("{:?}", key_set);
+    // let key_set = authentication::get_msa_key_set().await;
+    // println!("{:?}", key_set);
 
     /*
     rocket::ignite()
