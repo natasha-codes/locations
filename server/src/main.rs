@@ -6,10 +6,13 @@ extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
 
+use rocket_contrib::json::Json;
+
 mod location;
+mod user;
 
 use location::{Coordinate, Location};
-use rocket_contrib::json::Json;
+use user::User;
 
 fn main() {
     rocket::ignite()
@@ -18,7 +21,7 @@ fn main() {
 }
 
 #[get("/hello")]
-fn get_a_location() -> Json<Location> {
+fn get_a_location(_user: User) -> Json<Location> {
     Json(Location {
         lat: Coordinate {
             hour: 1,
