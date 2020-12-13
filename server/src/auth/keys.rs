@@ -14,8 +14,8 @@ impl KeySet {
     }
 
     pub fn validate_jwt(&self, jwt: &JWT) -> Option<bool> {
-        match self.key_with_id(jwt.id) {
-            Some(signing_key) => Some(signing_key.validate(jwt.signature)),
+        match self.key_with_id(&jwt.id) {
+            Some(signing_key) => Some(signing_key.validate(&jwt.signature)),
             None => None,
         }
     }
@@ -38,7 +38,7 @@ pub struct Key {
 }
 
 impl Key {
-    pub fn validate(&self, signature: String) -> bool {
+    pub fn validate(&self, _signature: &str) -> bool {
         // do jwt validation stuff
 
         true
