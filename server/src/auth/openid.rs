@@ -1,11 +1,10 @@
 use std::time::{Duration, Instant};
 
-use jsonwebtoken::Validation;
 use reqwest;
 use serde::Deserialize;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, MutexGuard};
 
-use crate::auth::keys::KeySet;
+use crate::auth::keys::{JwtValidationResult, KeySet};
 
 pub struct OpenIDValidator {
     cached_key_set: Mutex<CachedKeySet>,
@@ -21,11 +20,6 @@ pub struct JWT {
     pub signature: String,
 }
 
-pub enum ValidationError {
-    UnknownKey,
-    FailedToValidate,
-}
-
 impl OpenIDValidator {
     pub async fn new() -> Result<Self, reqwest::Error> {
         let fresh_key_set = OpenIDValidator::get_fresh_msa_key_set().await?;
@@ -38,31 +32,42 @@ impl OpenIDValidator {
         })
     }
 
-    pub async fn validate(&self, jwt: JWT) -> Result<(), ValidationError> {
+    pub async fn validate_jwt(&self, jwt: JWT) -> bool {
         let mut guard = self.cached_key_set.lock().await;
 
-        // If we know about the key used to sign this JWT, validate it.
-        if let Some(is_valid) = guard.key_set.validate_jwt(&jwt) {
-            return if is_valid {
-                Ok(())
-            } else {
-                Err(ValidationError::FailedToValidate)
-            };
-        }
+        match guard.key_set.validate_jwt(&jwt) {
+            // If we know about the key used to sign this JWT, validate it.
+            JwtValidationResult::Success => true,
+            JwtValidationResult::Failure => false,
 
-        // Otherwise, if the cache is >5m old try and update it.
-        if Instant::now().duration_since(guard.last_updated) > Duration::from_secs(5 * 60) {
-            if let Ok(fresh_key_set) = OpenIDValidator::get_fresh_msa_key_set().await {
-                guard.key_set = fresh_key_set
+            // Otherwise, try and refresh the cache and re-validate.
+            JwtValidationResult::UnknownKey => {
+                self.try_refresh_msa_key_set(&mut guard).await
+                    && guard.key_set.validate_jwt(&jwt) == JwtValidationResult::Success
             }
+        }
+    }
 
-            // Even if we failed to get a fresh key set above, set the updated time
-            // so we don't try again for another 5m.
+    /// Try and refresh the MSA key set. Returns a boolean representing if the
+    /// cache was refreshed or not. The cache could fail to refresh if a refresh
+    /// was attempted recently, or if there was an error performing a refresh.
+    async fn try_refresh_msa_key_set<'a>(&self, guard: &mut MutexGuard<'a, CachedKeySet>) -> bool {
+        if Instant::now().duration_since(guard.last_updated) > Duration::from_secs(5 * 60) {
+            let maybe_key_set = OpenIDValidator::get_fresh_msa_key_set().await;
+
+            // Regardless of if we succeeded in getting a fresh key set above,
+            // set the updated time so we don't try again for another 5m.
             guard.last_updated = Instant::now();
 
-            Ok(())
+            match maybe_key_set {
+                Ok(fresh_key_set) => {
+                    guard.key_set = fresh_key_set;
+                    true
+                }
+                Err(_) => false,
+            }
         } else {
-            Err(ValidationError::UnknownKey)
+            false
         }
     }
 
