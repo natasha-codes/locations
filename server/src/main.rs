@@ -3,8 +3,8 @@
 use rocket::get;
 use rocket_contrib::json::Json;
 
-mod auth;
 mod location;
+mod openid;
 mod user;
 
 use location::{Coordinate, Location};
