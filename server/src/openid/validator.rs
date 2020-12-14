@@ -115,15 +115,25 @@ mod test {
     /// signing key.
     async fn test_fresh_validator_refreshes_cache_and_validates() {
         let mut validator = Validator::new_with_config(
-            utils::generate_authority(),
-            utils::TestKeySetFetcher::new(),
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new_with_multiple(
+                KeySet::empty(),
+                KeySet::with_keys(vec![utils::generate_key("keyid")]),
+            ),
             Duration::from_secs(0),
         );
 
-        let token = utils::generate_jwt();
+        let token = utils::generate_jwt("keyid", "my::aud");
 
         assert!(validator.validate(&token).await);
     }
+
+    /// future tests:
+    /// - empty first key set, sleep, full second key set
+    /// - rejects mismatched aud
+    /// - rejects expired
+    /// - rejects mal-signed
+    /// - rejects invalid format
 
     mod utils {
         use std::time::{SystemTime, UNIX_EPOCH};
@@ -136,16 +146,25 @@ mod test {
 
         use crate::openid::key_set::Key;
 
-        pub fn generate_authority() -> Authority<TestClaims> {
-            Authority::new(TEST_AUTHORITY_DOMAIN, TEST_AUTHORITY_AUD)
+        pub fn generate_authority(aud: &'static str) -> Authority<TestClaims> {
+            Authority::new("https://example.com", aud)
         }
 
-        pub fn generate_jwt() -> String {
+        pub fn generate_key(thumbprint: &str) -> Key {
+            Key {
+                key_type: String::from("RSA"),
+                thumbprint: String::from(thumbprint),
+                modulus: String::from(TEST_RSA_PUB_MODULUS),
+                exponent: String::from(TEST_RSA_PUB_EXPONENT),
+            }
+        }
+
+        pub fn generate_jwt(thumbprint: &str, aud: &'static str) -> String {
             let mut header = Header::new(Algorithm::RS256);
-            header.kid = Some(String::from("mytestkey"));
+            header.kid = Some(String::from(thumbprint));
 
             let claims = TestClaims {
-                aud: String::from(TEST_AUTHORITY_AUD),
+                aud: String::from(aud),
                 exp: (SystemTime::now() + Duration::from_secs(10))
                     .duration_since(UNIX_EPOCH)
                     .expect("Time went backwards!")
@@ -160,9 +179,6 @@ mod test {
             encode(&header, &claims, &encoding_key).expect("Failed to generate token")
         }
 
-        pub const TEST_AUTHORITY_DOMAIN: &'static str = "https://example.com";
-        pub const TEST_AUTHORITY_AUD: &'static str = "my::test::aud";
-
         #[derive(Serialize, Deserialize)]
         pub struct TestClaims {
             aud: String,
@@ -171,11 +187,27 @@ mod test {
             bar: String,
         }
 
-        pub struct TestKeySetFetcher {}
+        /// This test keyset fetcher will return `first` the first time its
+        /// `fetch` is called, and `rest` for all future calls. Allows validation
+        /// of keyset refresh logic through combinations of keysets prefilled
+        /// by a given test.
+        pub struct TestKeySetFetcher {
+            first: KeySet,
+            rest: KeySet,
+            fetches: usize,
+        }
 
         impl TestKeySetFetcher {
-            pub fn new() -> Self {
-                Self {}
+            pub fn new(first: KeySet) -> Self {
+                Self::new_with_multiple(first.clone(), first)
+            }
+
+            pub fn new_with_multiple(first: KeySet, rest: KeySet) -> Self {
+                Self {
+                    first,
+                    rest,
+                    fetches: 0,
+                }
             }
         }
 
@@ -184,17 +216,16 @@ mod test {
             type Error = ();
 
             async fn fetch<Claims: DeserializeOwned>(
-                &self,
+                &mut self,
                 _authority: &Authority<Claims>,
             ) -> Result<KeySet, Self::Error> {
-                let key = Key {
-                    key_type: String::from("RSA"),
-                    thumbprint: String::from("mytestkey"),
-                    modulus: String::from(TEST_RSA_PUB_MODULUS),
-                    exponent: String::from(TEST_RSA_PUB_EXPONENT),
-                };
+                self.fetches += 1;
 
-                Ok(KeySet::with_keys(vec![key]))
+                if self.fetches == 1 {
+                    Ok(self.first.clone())
+                } else {
+                    Ok(self.rest.clone())
+                }
             }
         }
 

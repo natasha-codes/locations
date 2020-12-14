@@ -8,7 +8,7 @@ pub trait KeySetFetcher {
     type Error;
 
     async fn fetch<Claims: DeserializeOwned>(
-        &self,
+        &mut self,
         authority: &Authority<Claims>,
     ) -> Result<KeySet, Self::Error>;
 }
@@ -26,7 +26,7 @@ impl KeySetFetcher for NetworkKeySetFetcher {
     type Error = reqwest::Error;
 
     async fn fetch<Claims: DeserializeOwned>(
-        &self,
+        &mut self,
         authority: &Authority<Claims>,
     ) -> Result<KeySet, Self::Error> {
         let keys_uri = reqwest::get(&authority.metadata_path())
@@ -45,7 +45,7 @@ struct Metadata {
     key_roster_uri: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct KeySet {
     keys: Vec<Key>,
 }
