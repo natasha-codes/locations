@@ -92,3 +92,82 @@ struct CachedKeySet {
     key_set: KeySet,
     last_updated: Instant,
 }
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    mod utils {
+        use super::*;
+
+        use async_trait::async_trait;
+        use jsonwebtoken::{encode, EncodingKey, Header};
+        use serde::{Deserialize, Serialize};
+
+        pub fn generate_jwt() -> String {
+            encode(
+                &Header::new(Algorithm::RS256),
+                &TestClaims {
+                    foo: String::from("foo_val"),
+                    bar: String::from("bar_val"),
+                },
+                &EncodingKey::from_rsa_pem(TEST_RSA_PRIV_KEY.as_bytes())
+                    .expect("Failed to load encoding key"),
+            )
+            .expect("Failed to generate token")
+        }
+
+        struct TestKeySetFetcher {}
+
+        #[async_trait(?Send)]
+        impl KeySetFetcher for TestKeySetFetcher {
+            type Error = ();
+
+            async fn fetch<Claims: DeserializeOwned>(
+                &self,
+                _authority: &Authority<Claims>,
+            ) -> Result<KeySet, Self::Error> {
+                Ok(KeySet::empty())
+            }
+        }
+
+        #[derive(Serialize, Deserialize)]
+        struct TestClaims {
+            foo: String,
+            bar: String,
+        }
+
+        const TEST_RSA_PRIV_KEY: &'static str = "-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEA4HtN0PMWbn6Zr5ikixpd0iKEVutzvlm15YC/OHAfvA/iijw0
+hD21hV7cYlGCbtEoBXU1l1T5/ZJ3SuqmoKpBgzWAuNl7vGTLJc+Ar4erqV7Yois+
+4lbBCPMmJh5SsqO//FYl1099S/7gry+OQee/gsWeW9Mpw/MpGJ5oQ9Z+Ynv3hYFi
+cJBnoufppZdnqfm8xSpoyvQe4WvZjQkd5PDAU+OKRr90QVsRgG8bocnBCAHKLBVV
+xFuD9SC3LmUcLoL6Qc9uAO0/e66WXMgX481osmHvKQBdpg2wYP0TD/177GW25lcE
+otM/n4wrdtltDUkZ2oqn58akYv82uv6hRZ6z9wIDAQABAoIBAQDNLUaBzj3ZfpOA
+IPd8QPwx/eSSAaEIAb006Mlej3UiEi7QhJjHqhOItJygrLmYCkoXOvtht4TLVRz9
+952XSiaZA8UEr5veJQ5dH90SEuI+63b8OqS+gebsBDoBK0QRDYSD4kWyF3CBjpPU
+65WN/YFYyMGmUkphVJZibx8DqkBYSBo620wvG2gYjLceVTOY1j8GKxHvpjDLKHhU
+ukUc3apuPXNnUV0cerqCHLk1C3x2+A8Svqfen+Tz0oB/IJ9Lg5uyQi/dIbLiM2pU
+tMdfaJddeO5msvgRYlTorH+N/kYwGMs0lRPv+KWexXwcCZ3ChBgh57Gal/tuqMOn
+L8VRFoKRAoGBAPPWd9W5hhWi+8OAy+/l8Kj6uUkLEkXG8tWxtCBYsGHiJEVFWZW3
+bD6V9qwh7iwbo5wymCMp/IoqaLpzvb0JTrQPJ53BtX1wfWMstupdYXEgGTh949V1
+GCI5r3UMtH5Eh0KuVRYtVjAYlWvq+GJnfoG8A9dCdZIRXKup3mTXxqFPAoGBAOut
+ribZZOsB7pHAYM3/FPIuNQj8EYYVvq7hrzfEpOPI5J59VAU5pKuwKKpMWimuUvcV
+cdGC8HAV2C4GFZxEeJwtVuptJ1I6AVYYUDTPm/zPi+jmJIq8o8N8OGFR1SATHjVA
+oo188ZOn7TW1TRYZwmT63PmsF6Dey4XH0BAvEojZAoGBALYJ1Fcj9V1r2yd+nUIR
+WVTeMbu9Xzvmpl4xF7faXnwFF2z7tEDYuiATVx/1CNm3HLM89mWyL856kMs6I1ng
+e/hjJAFbn4HxnDqRJFHduyR4gTuyiIhQrd7HUB1DifCGerCmc/FlkWXAxLTXq+3T
+NBfo5Lks7ZdKDPQ/kj+Y87pzAoGAGToLBR+J/NnFFpbYBdTDAjVN+fs5SPf05DVG
+ExsaZ0NurURPBQwpgzMk9y2bDREa0lXaTAnPAMBl1m9SStrNajI0Nn2ekt+gmv2Z
+QD3kvYfduv0/dhZBFUCrrEcdIATL2/liLPDtztdPvcr9SFtTgomTs6nnEZIniNdd
+fw361ukCgYEA4LMrapbXdsf4MIlIYfFPK0agK4NjMuL9b7pJm/a8cARIV10wza5p
+xWm+bERSPS2bVCE1rSIpxo+rVLgoeoB0gY8s/GtRPEe0jpF4SIEBShrA4CkfR/8Q
+PJjZ80v2QyRgj06DGInc7cIG1cMMc7WIYCOgYuh4geDyxLVE3K1iksw=
+-----END RSA PRIVATE KEY-----
+";
+
+        const TEST_RSA_PUB_MODULUS: &'static str = "AOB7TdDzFm5+ma+YpIsaXdIihFbrc75ZteWAvzhwH7wP4oo8NIQ9tYVe3GJRgm7RKAV1NZdU+f2Sd0rqpqCqQYM1gLjZe7xkyyXPgK+Hq6le2KIrPuJWwQjzJiYeUrKjv/xWJddPfUv+4K8vjkHnv4LFnlvTKcPzKRieaEPWfmJ794WBYnCQZ6Ln6aWXZ6n5vMUqaMr0HuFr2Y0JHeTwwFPjika/dEFbEYBvG6HJwQgByiwVVcRbg/Ugty5lHC6C+kHPbgDtP3uullzIF+PNaLJh7ykAXaYNsGD9Ew/9e+xltuZXBKLTP5+MK3bZbQ1JGdqKp+fGpGL/Nrr+oUWes/c=";
+        const TEST_RSA_PUB_EXPONENT: &'static str = "AQAB";
+    }
+}
