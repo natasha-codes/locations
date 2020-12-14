@@ -44,6 +44,9 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
         }
     }
 
+    /// Returns a boolean indicating if the given JWT validated, using the authority
+    /// this validator was initialized with. May perform a keyset cache refresh if
+    /// the JWT was signed with a key we don't have locally.
     pub async fn validate(&mut self, jwt: &str) -> bool {
         if let Ok(header) = decode_header(jwt) {
             if let Some(thumbprint) = header.kid {
@@ -106,7 +109,11 @@ mod test {
     use super::*;
 
     #[tokio::test]
-    async fn test_validate_works() {
+    /// Tests that a JWT encoded with a local key successfully decodes with a
+    /// fresh validator. Since the validator starts with an empty keyset, also
+    /// tests that the validator will refresh its keyset for an unrecognized
+    /// signing key.
+    async fn test_fresh_validator_refreshes_cache_and_validates() {
         let mut validator = Validator::new_with_config(
             utils::generate_authority(),
             utils::TestKeySetFetcher::new(),
