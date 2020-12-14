@@ -124,7 +124,11 @@ mod test {
             Duration::from_secs(0),
         );
 
-        assert!(validator.validate(&utils::generate_jwt()).await);
+        let token = utils::generate_jwt();
+
+        println!("token: {:?}", token);
+
+        assert!(validator.validate(&token).await);
     }
 
     mod utils {
@@ -194,35 +198,35 @@ mod test {
         }
 
         const TEST_RSA_PRIV_KEY: &'static str = "-----BEGIN RSA PRIVATE KEY-----
-MIIEpQIBAAKCAQEA4HtN0PMWbn6Zr5ikixpd0iKEVutzvlm15YC/OHAfvA/iijw0
-hD21hV7cYlGCbtEoBXU1l1T5/ZJ3SuqmoKpBgzWAuNl7vGTLJc+Ar4erqV7Yois+
-4lbBCPMmJh5SsqO//FYl1099S/7gry+OQee/gsWeW9Mpw/MpGJ5oQ9Z+Ynv3hYFi
-cJBnoufppZdnqfm8xSpoyvQe4WvZjQkd5PDAU+OKRr90QVsRgG8bocnBCAHKLBVV
-xFuD9SC3LmUcLoL6Qc9uAO0/e66WXMgX481osmHvKQBdpg2wYP0TD/177GW25lcE
-otM/n4wrdtltDUkZ2oqn58akYv82uv6hRZ6z9wIDAQABAoIBAQDNLUaBzj3ZfpOA
-IPd8QPwx/eSSAaEIAb006Mlej3UiEi7QhJjHqhOItJygrLmYCkoXOvtht4TLVRz9
-952XSiaZA8UEr5veJQ5dH90SEuI+63b8OqS+gebsBDoBK0QRDYSD4kWyF3CBjpPU
-65WN/YFYyMGmUkphVJZibx8DqkBYSBo620wvG2gYjLceVTOY1j8GKxHvpjDLKHhU
-ukUc3apuPXNnUV0cerqCHLk1C3x2+A8Svqfen+Tz0oB/IJ9Lg5uyQi/dIbLiM2pU
-tMdfaJddeO5msvgRYlTorH+N/kYwGMs0lRPv+KWexXwcCZ3ChBgh57Gal/tuqMOn
-L8VRFoKRAoGBAPPWd9W5hhWi+8OAy+/l8Kj6uUkLEkXG8tWxtCBYsGHiJEVFWZW3
-bD6V9qwh7iwbo5wymCMp/IoqaLpzvb0JTrQPJ53BtX1wfWMstupdYXEgGTh949V1
-GCI5r3UMtH5Eh0KuVRYtVjAYlWvq+GJnfoG8A9dCdZIRXKup3mTXxqFPAoGBAOut
-ribZZOsB7pHAYM3/FPIuNQj8EYYVvq7hrzfEpOPI5J59VAU5pKuwKKpMWimuUvcV
-cdGC8HAV2C4GFZxEeJwtVuptJ1I6AVYYUDTPm/zPi+jmJIq8o8N8OGFR1SATHjVA
-oo188ZOn7TW1TRYZwmT63PmsF6Dey4XH0BAvEojZAoGBALYJ1Fcj9V1r2yd+nUIR
-WVTeMbu9Xzvmpl4xF7faXnwFF2z7tEDYuiATVx/1CNm3HLM89mWyL856kMs6I1ng
-e/hjJAFbn4HxnDqRJFHduyR4gTuyiIhQrd7HUB1DifCGerCmc/FlkWXAxLTXq+3T
-NBfo5Lks7ZdKDPQ/kj+Y87pzAoGAGToLBR+J/NnFFpbYBdTDAjVN+fs5SPf05DVG
-ExsaZ0NurURPBQwpgzMk9y2bDREa0lXaTAnPAMBl1m9SStrNajI0Nn2ekt+gmv2Z
-QD3kvYfduv0/dhZBFUCrrEcdIATL2/liLPDtztdPvcr9SFtTgomTs6nnEZIniNdd
-fw361ukCgYEA4LMrapbXdsf4MIlIYfFPK0agK4NjMuL9b7pJm/a8cARIV10wza5p
-xWm+bERSPS2bVCE1rSIpxo+rVLgoeoB0gY8s/GtRPEe0jpF4SIEBShrA4CkfR/8Q
-PJjZ80v2QyRgj06DGInc7cIG1cMMc7WIYCOgYuh4geDyxLVE3K1iksw=
------END RSA PRIVATE KEY-----
-";
+MIIEowIBAAKCAQEAqsxfYbJkogSb7JOBZtCgwEztVk1DVu6eniGzSAu3oedBVkAs
+jxIvMoXQVZp+g72Z9Fzvi43hMjk3o9RPUAju+xSo1gYOBEHj7B6QV799YecOZyAV
+YXEG5ugJSNxDeevRlcOny2vXqcLjDZaEIT7GZMYzrKxY2JdTsYqYfy2ZV5vm+7K7
+9hePKvs3rhvFi+X51mgM3EzE2uJ8z8g4z3PvNyCIyZLztJuEqI/R/tkXDrtQqyv8
+Tpwxb22iDjNVw59iH/H7sf0rgQwyh8DtGreKlFXBuqgqWNphm8qpQ1F1StZxlckx
+NDJI/kRriBVb45J0iKS3FDIJFGBuZqd10XAs7QIDAQABAoIBAESb8Dy4goAqxc/U
+uQhqCgj1XelrA//pvsHa27+3JT7ePHq/MKcQMPFkm3mno+abxTpKEtfGWI3qOhWP
+dYS68fTeKaw/pmXDaiExbd4xx9YKENkQJEaONq2OzBv+jwRs3DYC8GZgnbNN3BNb
+QRxxsRROIffdC5uFvlL1T6jW0mBEUhgGqeyKJIpKop6ULH7bbf6k2ocjqmHaiv/T
+2KO/2eQpSSe7plRf5sw7ZzNmIPN52PQMQZ5U/hIKu8vHzsMiEPYbHb3vMVECbCzK
+TrM93UqmwbS38mj9e9tNGsT7i2A0HwHmTFGTBvuzwc5uwRDEHbKNqOXwSsPwopY2
+XcA3V2kCgYEA0dhQ5dWreQfTXxfdEGfCowawOv73FXYwKGtNLGMlaNumAF72tvff
+8o9pIKnYq3nCL5xdYYyxOOwiIrWeY35L2Plzr1XWWY+pu6M7KuI3tY6L5RCa9SlY
+bUg121wMdiCXUf5AQCIGweurzssugTC+LO1Z5OsJtpfJGvhY1IB2JO8CgYEA0F13
+o32ZXxWRtu3kNBc0ntkGjiAtWote3jhYCWmZP9FTKAoZaCpXiTCGtxm1tx+iA+zR
+n01+U+kZiTOOSist9d2UkXg06HZWOEa7hOdzv9uQwgFq3EwKH847us3d5aG0MPqI
+yLJ9cGh5Kzwgy85CbmZXIxvwwEpXlpQCKL/rY+MCgYAlWo47+2cEqmHz4XmWfAHn
+pz8joVM2XM2BxGf+aL+2BLNuCXl9ZG5W7TRXfiR1kb0BYKI2xSae7Vm+N/oz172E
+qBLxuSPo2WvrXMkhfxdPmEpKwkPzNCLrgRklLSOCu5Z0IAAr6mKtjlgM/ZoPoS+Z
+K77+wt/9wtMnm+GkIiHlvQKBgQCbKw/eY7lksuZZyRzpoeJg7RPRoarExAd5C5Kc
+J9SlTthTd/nltaqMkuOv1Wian+cCb0jIDmimSm/m2cr79t36O/HYxyD3gLDCpgId
+flOXrAZIQ8/1kHb1qpqWiZrW2C4dT2WvuCRsIpEhnlx6Cfc0yefYUIVgXbyOeViG
+Si4cqwKBgCxca4EXjxXXi0XUvydwW2fgUQWPdyeCG6XA1lzdxnjQ9vvNCnrveOnT
+06SGQX/J3voTd+/PLpk2EmEBlSBoM8+bfJC1XvbhhwalLleSv/5nY+uGuxii+qYj
+XhDogh0OS9EWWrpofA1JleaCegmeXpJpknjJP+XHM7d4fNbhAlvZ
+-----END RSA PRIVATE KEY-----";
 
-        const TEST_RSA_PUB_MODULUS: &'static str = "AOB7TdDzFm5+ma+YpIsaXdIihFbrc75ZteWAvzhwH7wP4oo8NIQ9tYVe3GJRgm7RKAV1NZdU+f2Sd0rqpqCqQYM1gLjZe7xkyyXPgK+Hq6le2KIrPuJWwQjzJiYeUrKjv/xWJddPfUv+4K8vjkHnv4LFnlvTKcPzKRieaEPWfmJ794WBYnCQZ6Ln6aWXZ6n5vMUqaMr0HuFr2Y0JHeTwwFPjika/dEFbEYBvG6HJwQgByiwVVcRbg/Ugty5lHC6C+kHPbgDtP3uullzIF+PNaLJh7ykAXaYNsGD9Ew/9e+xltuZXBKLTP5+MK3bZbQ1JGdqKp+fGpGL/Nrr+oUWes/c=";
+        const TEST_RSA_PUB_MODULUS: &'static str =
+            "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==";
         const TEST_RSA_PUB_EXPONENT: &'static str = "AQAB";
     }
 }
