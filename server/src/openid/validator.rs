@@ -89,6 +89,14 @@ mod test {
 
     use super::*;
 
+    #[tokio::test]
+    async fn test_validate_works() {
+        let mut validator =
+            Validator::new_with_config(Authority::MSA, utils::TestKeySetFetcher::new());
+
+        assert!(validator.validate(&utils::generate_jwt()).await);
+    }
+
     mod utils {
         use super::*;
 
@@ -109,7 +117,13 @@ mod test {
             .expect("Failed to generate token")
         }
 
-        struct TestKeySetFetcher {}
+        pub struct TestKeySetFetcher {}
+
+        impl TestKeySetFetcher {
+            pub fn new() -> Self {
+                Self {}
+            }
+        }
 
         #[async_trait(?Send)]
         impl KeySetFetcher for TestKeySetFetcher {
