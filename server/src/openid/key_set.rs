@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
-use crate::openid::authority::Authority;
+use crate::openid::authority::{Authority, Claims};
 
-pub async fn get_key_set(authority: Authority) -> Result<KeySet, reqwest::Error> {
+pub async fn get_key_set<C: Claims>(authority: Authority<C>) -> Result<KeySet, reqwest::Error> {
     let keys_uri = reqwest::get(&authority.metadata_path())
         .await?
         .json::<Metadata>()
@@ -18,18 +18,21 @@ struct Metadata {
     key_roster_uri: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct KeySet {
     keys: Vec<Key>,
 }
 
 impl KeySet {
-    pub fn key_with_thumbprint(&self, thumbprint: &str) -> Option<&Key> {
-        self.keys.iter().find(|key| key.thumbprint == thumbprint)
+    pub fn key_with_thumbprint(&self, thumbprint: &str) -> Option<Key> {
+        self.keys
+            .iter()
+            .find(|key| key.thumbprint == thumbprint)
+            .map(|key| key.clone())
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Key {
     #[serde(rename(deserialize = "kty"))]
     /// Expected to always be "RSA".
@@ -38,13 +41,9 @@ pub struct Key {
     #[serde(rename(deserialize = "kid"))]
     pub thumbprint: String,
 
-    #[serde(rename(deserialize = "x5c"))]
-    x509_certs: Vec<String>,
-}
+    #[serde(rename(deserialize = "n"))]
+    pub modulus: String,
 
-impl Key {
-    pub fn key_data(&self) -> &String {
-        // The first value in this array is the key to be used for token verification
-        &self.x509_certs[0]
-    }
+    #[serde(rename(deserialize = "e"))]
+    pub exponent: String,
 }

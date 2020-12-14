@@ -1,18 +1,19 @@
 use std::time::{Duration, Instant};
 
+use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use reqwest;
 use tokio::sync::{Mutex, MutexGuard};
 
-use crate::openid::authority::Authority;
+use crate::openid::authority::{Authority, Claims};
 use crate::openid::key_set::{get_key_set, Key, KeySet};
 
-pub struct Validator {
-    authority: Authority,
+pub struct Validator<C: Claims> {
+    authority: Authority<C>,
     cached_key_set: Mutex<CachedKeySet>,
 }
 
-impl Validator {
-    pub async fn new(authority: Authority) -> Result<Self, reqwest::Error> {
+impl<C: Claims> Validator<C> {
+    pub async fn new(authority: Authority<C>) -> Result<Self, reqwest::Error> {
         let fresh_key_set = get_key_set(authority).await?;
 
         Ok(Self {
@@ -24,30 +25,43 @@ impl Validator {
         })
     }
 
-    pub async fn validate(&self, jwt: &JWT) -> bool {
-        let mut guard = self.cached_key_set.lock().await;
+    pub async fn validate(&self, jwt: &str) -> bool {
+        if let Ok(header) = decode_header(jwt) {
+            if let Some(thumbprint) = header.kid {
+                if let Some(key) = self.get_key(&thumbprint).await {
+                    let decoding_key =
+                        DecodingKey::from_rsa_components(&key.modulus, &key.exponent);
 
-        if let Some(signing_key) = guard.key_set.key_with_thumbprint(&jwt.id) {
-            return Validator::validate_with_key(jwt, signing_key);
-        }
+                    let mut validation = Validation::new(Algorithm::from(header.alg));
+                    validation.set_audience(&[self.authority.aud()]);
 
-        if self.try_refresh_msa_key_set(&mut guard).await {
-            if let Some(signing_key) = guard.key_set.key_with_thumbprint(&jwt.id) {
-                return Validator::validate_with_key(jwt, signing_key);
+                    return decode::<C>(jwt, &decoding_key, &validation).is_ok();
+                }
             }
         }
 
         false
     }
 
-    fn validate_with_key(_jwt: &JWT, _signing_key: &Key) -> bool {
-        true
+    async fn get_key(&self, thumbprint: &str) -> Option<Key> {
+        let mut guard = self.cached_key_set.lock().await;
+
+        match guard.key_set.key_with_thumbprint(&thumbprint) {
+            Some(key) => Some(key),
+            None => {
+                if self.try_refresh_key_set(&mut guard).await {
+                    guard.key_set.key_with_thumbprint(&thumbprint)
+                } else {
+                    None
+                }
+            }
+        }
     }
 
-    /// Try and refresh the MSA key set. Returns a boolean representing if the
+    /// Try and refresh the cached key set. Returns a boolean representing if the
     /// cache was refreshed or not. The cache could fail to refresh if a refresh
     /// was attempted recently, or if there was an error performing a refresh.
-    async fn try_refresh_msa_key_set<'a>(&self, guard: &mut MutexGuard<'a, CachedKeySet>) -> bool {
+    async fn try_refresh_key_set<'a>(&self, guard: &mut MutexGuard<'a, CachedKeySet>) -> bool {
         if Instant::now().duration_since(guard.last_updated) > Duration::from_secs(5 * 60) {
             let maybe_key_set = get_key_set(self.authority).await;
 
@@ -71,9 +85,4 @@ impl Validator {
 struct CachedKeySet {
     key_set: KeySet,
     last_updated: Instant,
-}
-
-pub struct JWT {
-    pub id: String,
-    pub signature: String,
 }
