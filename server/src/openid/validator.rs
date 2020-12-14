@@ -46,11 +46,8 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
 
     pub async fn validate(&mut self, jwt: &str) -> bool {
         if let Ok(header) = decode_header(jwt) {
-            println!("header: {:?}", header);
             if let Some(thumbprint) = header.kid {
-                println!("thumbprint: {:?}", thumbprint);
                 if let Some(key) = self.get_key(&thumbprint).await {
-                    println!("key: {:?}", key.thumbprint);
                     let decoding_key =
                         DecodingKey::from_rsa_components(&key.modulus, &key.exponent);
 
@@ -58,12 +55,6 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
                     validation.set_audience(&[self.authority.aud()]);
 
                     let decode_result = decode::<C>(jwt, &decoding_key, &validation);
-
-                    match decode_result {
-                        Ok(ref token_data) => println!("token data: {:?}", token_data.header),
-                        Err(ref err) => println!("token err: {:?}", err),
-                    };
-
                     return decode_result.is_ok();
                 }
             }
@@ -123,8 +114,6 @@ mod test {
         );
 
         let token = utils::generate_jwt();
-
-        println!("token: {:?}", token);
 
         assert!(validator.validate(&token).await);
     }
@@ -202,6 +191,22 @@ mod test {
             }
         }
 
+        /// These values represent a public/private RSA key pair we can use to encode/decode
+        /// test JWTS. The private key is in PEM format, and the public key is represented by
+        /// its modulus and exponent values. Together, these are sufficient to encode/decode
+        /// a test JWT with our JWT library.
+        ///
+        /// To generate new values (if we ever needed to):
+        /// - Generate an RSA PEM private key: `openssl genrsa -out test_key.key`. Copy the whole contents into this file.
+        /// - Generate the corresponding public key: `openssl rsa -in test_key.key -outform PEM -pubout -out public.pem`
+        /// - Take that public key and plug it into [this great website](https://superdry.apphb.com/tools/online-rsa-key-converter)
+        ///   to get the modulus/exponent.
+        /// - Related to [this issue](https://github.com/Keats/jsonwebtoken/issues/153), need to take the base64 modulus from
+        ///   above and re-encode it with the URL-safe base64 charset. Paste the b64 modulus into
+        ///   [this website](http://www.base64url.com/), and copy the URL-safe b64 modulus into this file.
+        const TEST_RSA_PUB_MODULUS: &'static str =
+            "qsxfYbJkogSb7JOBZtCgwEztVk1DVu6eniGzSAu3oedBVkAsjxIvMoXQVZp-g72Z9Fzvi43hMjk3o9RPUAju-xSo1gYOBEHj7B6QV799YecOZyAVYXEG5ugJSNxDeevRlcOny2vXqcLjDZaEIT7GZMYzrKxY2JdTsYqYfy2ZV5vm-7K79hePKvs3rhvFi-X51mgM3EzE2uJ8z8g4z3PvNyCIyZLztJuEqI_R_tkXDrtQqyv8Tpwxb22iDjNVw59iH_H7sf0rgQwyh8DtGreKlFXBuqgqWNphm8qpQ1F1StZxlckxNDJI_kRriBVb45J0iKS3FDIJFGBuZqd10XAs7Q";
+        const TEST_RSA_PUB_EXPONENT: &'static str = "AQAB";
         const TEST_RSA_PRIV_KEY: &'static str = "-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAqsxfYbJkogSb7JOBZtCgwEztVk1DVu6eniGzSAu3oedBVkAs
 jxIvMoXQVZp+g72Z9Fzvi43hMjk3o9RPUAju+xSo1gYOBEHj7B6QV799YecOZyAV
@@ -229,9 +234,5 @@ Si4cqwKBgCxca4EXjxXXi0XUvydwW2fgUQWPdyeCG6XA1lzdxnjQ9vvNCnrveOnT
 06SGQX/J3voTd+/PLpk2EmEBlSBoM8+bfJC1XvbhhwalLleSv/5nY+uGuxii+qYj
 XhDogh0OS9EWWrpofA1JleaCegmeXpJpknjJP+XHM7d4fNbhAlvZ
 -----END RSA PRIVATE KEY-----";
-
-        const TEST_RSA_PUB_MODULUS: &'static str =
-            "qsxfYbJkogSb7JOBZtCgwEztVk1DVu6eniGzSAu3oedBVkAsjxIvMoXQVZp-g72Z9Fzvi43hMjk3o9RPUAju-xSo1gYOBEHj7B6QV799YecOZyAVYXEG5ugJSNxDeevRlcOny2vXqcLjDZaEIT7GZMYzrKxY2JdTsYqYfy2ZV5vm-7K79hePKvs3rhvFi-X51mgM3EzE2uJ8z8g4z3PvNyCIyZLztJuEqI_R_tkXDrtQqyv8Tpwxb22iDjNVw59iH_H7sf0rgQwyh8DtGreKlFXBuqgqWNphm8qpQ1F1StZxlckxNDJI_kRriBVb45J0iKS3FDIJFGBuZqd10XAs7Q";
-        const TEST_RSA_PUB_EXPONENT: &'static str = "AQAB";
     }
 }
