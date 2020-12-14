@@ -5,6 +5,7 @@ authors = ["Nathan Shelly <nsnshelly@gmail.com>", "Sasha Weiss <asashaweiss@gmai
 edition = "2018"
 
 [dependencies]
+async-trait = "0.1.42"
 jsonwebtoken = "7"
 reqwest = { version = "0.10", features = ["json"] }
 rocket = "0.4.6"

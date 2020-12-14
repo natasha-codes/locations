@@ -1,17 +1,42 @@
+use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize};
 
 use crate::openid::authority::Authority;
 
-pub async fn get_key_set<Claims: DeserializeOwned>(
-    authority: &Authority<Claims>,
-) -> Result<KeySet, reqwest::Error> {
-    let keys_uri = reqwest::get(&authority.metadata_path())
-        .await?
-        .json::<Metadata>()
-        .await?
-        .key_roster_uri;
+#[async_trait(?Send)]
+pub trait KeySetFetcher {
+    type Error;
 
-    reqwest::get(&keys_uri).await?.json::<KeySet>().await
+    async fn fetch<Claims: DeserializeOwned>(
+        &self,
+        authority: &Authority<Claims>,
+    ) -> Result<KeySet, Self::Error>;
+}
+
+pub struct NetworkKeySetFetcher {}
+
+impl NetworkKeySetFetcher {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+#[async_trait(?Send)]
+impl KeySetFetcher for NetworkKeySetFetcher {
+    type Error = reqwest::Error;
+
+    async fn fetch<Claims: DeserializeOwned>(
+        &self,
+        authority: &Authority<Claims>,
+    ) -> Result<KeySet, Self::Error> {
+        let keys_uri = reqwest::get(&authority.metadata_path())
+            .await?
+            .json::<Metadata>()
+            .await?
+            .key_roster_uri;
+
+        reqwest::get(&keys_uri).await?.json::<KeySet>().await
+    }
 }
 
 #[derive(Deserialize)]
@@ -26,6 +51,10 @@ pub struct KeySet {
 }
 
 impl KeySet {
+    pub fn empty() -> Self {
+        Self { keys: vec![] }
+    }
+
     pub fn key_with_thumbprint(&self, thumbprint: &str) -> Option<Key> {
         self.keys
             .iter()
