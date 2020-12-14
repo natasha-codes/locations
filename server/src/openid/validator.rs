@@ -40,9 +40,7 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
             fetcher,
             refresh_interval,
             key_set: KeySet::empty(),
-            key_set_last_updated: Instant::now()
-                .checked_sub(refresh_interval)
-                .expect("Failed to subtract refresh interval from now"),
+            key_set_last_updated: Instant::now() - refresh_interval,
         }
     }
 
@@ -132,6 +130,8 @@ mod test {
     }
 
     mod utils {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
         use super::*;
 
         use async_trait::async_trait;
@@ -150,6 +150,10 @@ mod test {
 
             let claims = TestClaims {
                 aud: String::from(TEST_AUTHORITY_AUD),
+                exp: (SystemTime::now() + Duration::from_secs(10))
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards!")
+                    .as_secs(),
                 foo: String::from("foo_val"),
                 bar: String::from("bar_val"),
             };
@@ -166,6 +170,7 @@ mod test {
         #[derive(Serialize, Deserialize)]
         pub struct TestClaims {
             aud: String,
+            exp: u64,
             foo: String,
             bar: String,
         }
@@ -226,7 +231,7 @@ XhDogh0OS9EWWrpofA1JleaCegmeXpJpknjJP+XHM7d4fNbhAlvZ
 -----END RSA PRIVATE KEY-----";
 
         const TEST_RSA_PUB_MODULUS: &'static str =
-            "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==";
+            "qsxfYbJkogSb7JOBZtCgwEztVk1DVu6eniGzSAu3oedBVkAsjxIvMoXQVZp-g72Z9Fzvi43hMjk3o9RPUAju-xSo1gYOBEHj7B6QV799YecOZyAVYXEG5ugJSNxDeevRlcOny2vXqcLjDZaEIT7GZMYzrKxY2JdTsYqYfy2ZV5vm-7K79hePKvs3rhvFi-X51mgM3EzE2uJ8z8g4z3PvNyCIyZLztJuEqI_R_tkXDrtQqyv8Tpwxb22iDjNVw59iH_H7sf0rgQwyh8DtGreKlFXBuqgqWNphm8qpQ1F1StZxlckxNDJI_kRriBVb45J0iKS3FDIJFGBuZqd10XAs7Q";
         const TEST_RSA_PUB_EXPONENT: &'static str = "AQAB";
     }
 }
