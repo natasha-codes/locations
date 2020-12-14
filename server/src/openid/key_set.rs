@@ -55,6 +55,10 @@ impl KeySet {
         Self { keys: vec![] }
     }
 
+    pub fn with_keys(keys: Vec<Key>) -> Self {
+        Self { keys }
+    }
+
     pub fn key_with_thumbprint(&self, thumbprint: &str) -> Option<Key> {
         self.keys
             .iter()

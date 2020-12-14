@@ -13,6 +13,14 @@ pub struct Authority<Claims: DeserializeOwned> {
 }
 
 impl<Claims: DeserializeOwned> Authority<Claims> {
+    pub fn new(domain: &'static str, aud: &'static str) -> Self {
+        Self {
+            domain,
+            aud,
+            claims: PhantomData,
+        }
+    }
+
     pub fn aud(&self) -> &'static str {
         self.aud
     }

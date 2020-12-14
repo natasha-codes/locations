@@ -7,39 +7,66 @@ use crate::openid::authority::Authority;
 use crate::openid::key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher};
 
 pub struct Validator<C: DeserializeOwned, F: KeySetFetcher> {
+    /// The OpenID authority to use to validate.
     authority: Authority<C>,
-    key_set_fetcher: F,
+    /// Used for fetching fresh key sets from the authority.
+    fetcher: F,
+    /// The minimum interval between attempted key set refreshes.
+    refresh_interval: Duration,
+    /// The currently-held set of keys from the authority.
     key_set: KeySet,
+    /// When the key set was last updated.
     key_set_last_updated: Instant,
 }
 
 impl<C: DeserializeOwned> Validator<C, NetworkKeySetFetcher> {
     pub fn new(authority: Authority<C>) -> Self {
-        Validator::new_with_config(authority, NetworkKeySetFetcher::new())
+        Validator::new_with_config(
+            authority,
+            NetworkKeySetFetcher::new(),
+            Duration::from_secs(5 * 60),
+        )
     }
 }
 
 impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
-    pub fn new_with_config(authority: Authority<C>, fetcher: F) -> Self {
+    pub fn new_with_config(
+        authority: Authority<C>,
+        fetcher: F,
+        refresh_interval: Duration,
+    ) -> Self {
         Self {
             authority,
-            key_set_fetcher: fetcher,
+            fetcher,
+            refresh_interval,
             key_set: KeySet::empty(),
-            key_set_last_updated: Instant::now(),
+            key_set_last_updated: Instant::now()
+                .checked_sub(refresh_interval)
+                .expect("Failed to subtract refresh interval from now"),
         }
     }
 
     pub async fn validate(&mut self, jwt: &str) -> bool {
         if let Ok(header) = decode_header(jwt) {
+            println!("header: {:?}", header);
             if let Some(thumbprint) = header.kid {
+                println!("thumbprint: {:?}", thumbprint);
                 if let Some(key) = self.get_key(&thumbprint).await {
+                    println!("key: {:?}", key.thumbprint);
                     let decoding_key =
                         DecodingKey::from_rsa_components(&key.modulus, &key.exponent);
 
                     let mut validation = Validation::new(Algorithm::from(header.alg));
                     validation.set_audience(&[self.authority.aud()]);
 
-                    return decode::<C>(jwt, &decoding_key, &validation).is_ok();
+                    let decode_result = decode::<C>(jwt, &decoding_key, &validation);
+
+                    match decode_result {
+                        Ok(ref token_data) => println!("token data: {:?}", token_data.header),
+                        Err(ref err) => println!("token err: {:?}", err),
+                    };
+
+                    return decode_result.is_ok();
                 }
             }
         }
@@ -64,8 +91,8 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
     /// cache was refreshed or not. The cache could fail to refresh if a refresh
     /// was attempted recently, or if there was an error performing a refresh.
     async fn try_refresh_key_set(&mut self) -> bool {
-        if Instant::now().duration_since(self.key_set_last_updated) > Duration::from_secs(5 * 60) {
-            let maybe_key_set = self.key_set_fetcher.fetch(&self.authority).await;
+        if Instant::now().duration_since(self.key_set_last_updated) >= self.refresh_interval {
+            let maybe_key_set = self.fetcher.fetch(&self.authority).await;
 
             // Regardless of if we succeeded in getting a fresh key set above,
             // set the updated time so we don't try again for another 5m.
@@ -91,8 +118,11 @@ mod test {
 
     #[tokio::test]
     async fn test_validate_works() {
-        let mut validator =
-            Validator::new_with_config(Authority::MSA, utils::TestKeySetFetcher::new());
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority(),
+            utils::TestKeySetFetcher::new(),
+            Duration::from_secs(0),
+        );
 
         assert!(validator.validate(&utils::generate_jwt()).await);
     }
@@ -104,17 +134,36 @@ mod test {
         use jsonwebtoken::{encode, EncodingKey, Header};
         use serde::{Deserialize, Serialize};
 
+        use crate::openid::key_set::Key;
+
+        pub fn generate_authority() -> Authority<TestClaims> {
+            Authority::new(TEST_AUTHORITY_DOMAIN, TEST_AUTHORITY_AUD)
+        }
+
         pub fn generate_jwt() -> String {
-            encode(
-                &Header::new(Algorithm::RS256),
-                &TestClaims {
-                    foo: String::from("foo_val"),
-                    bar: String::from("bar_val"),
-                },
-                &EncodingKey::from_rsa_pem(TEST_RSA_PRIV_KEY.as_bytes())
-                    .expect("Failed to load encoding key"),
-            )
-            .expect("Failed to generate token")
+            let mut header = Header::new(Algorithm::RS256);
+            header.kid = Some(String::from("mytestkey"));
+
+            let claims = TestClaims {
+                aud: String::from(TEST_AUTHORITY_AUD),
+                foo: String::from("foo_val"),
+                bar: String::from("bar_val"),
+            };
+
+            let encoding_key = EncodingKey::from_rsa_pem(TEST_RSA_PRIV_KEY.as_bytes())
+                .expect("Failed to load encoding key");
+
+            encode(&header, &claims, &encoding_key).expect("Failed to generate token")
+        }
+
+        pub const TEST_AUTHORITY_DOMAIN: &'static str = "https://example.com";
+        pub const TEST_AUTHORITY_AUD: &'static str = "my::test::aud";
+
+        #[derive(Serialize, Deserialize)]
+        pub struct TestClaims {
+            aud: String,
+            foo: String,
+            bar: String,
         }
 
         pub struct TestKeySetFetcher {}
@@ -133,14 +182,15 @@ mod test {
                 &self,
                 _authority: &Authority<Claims>,
             ) -> Result<KeySet, Self::Error> {
-                Ok(KeySet::empty())
-            }
-        }
+                let key = Key {
+                    key_type: String::from("RSA"),
+                    thumbprint: String::from("mytestkey"),
+                    modulus: String::from(TEST_RSA_PUB_MODULUS),
+                    exponent: String::from(TEST_RSA_PUB_EXPONENT),
+                };
 
-        #[derive(Serialize, Deserialize)]
-        struct TestClaims {
-            foo: String,
-            bar: String,
+                Ok(KeySet::with_keys(vec![key]))
+            }
         }
 
         const TEST_RSA_PRIV_KEY: &'static str = "-----BEGIN RSA PRIVATE KEY-----
