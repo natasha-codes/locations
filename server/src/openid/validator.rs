@@ -116,10 +116,7 @@ mod test {
     async fn test_fresh_validator_refreshes_cache_and_validates() {
         let mut validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
-            utils::TestKeySetFetcher::new_with_multiple(
-                KeySet::empty(),
-                KeySet::with_keys(vec![utils::generate_key("keyid")]),
-            ),
+            utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
         );
 
@@ -150,13 +147,13 @@ mod test {
             Authority::new("https://example.com", aud)
         }
 
-        pub fn generate_key(thumbprint: &str) -> Key {
-            Key {
+        pub fn generate_keyset(thumbprint: &str) -> KeySet {
+            KeySet::with_keys(vec![Key {
                 key_type: String::from("RSA"),
                 thumbprint: String::from(thumbprint),
                 modulus: String::from(TEST_RSA_PUB_MODULUS),
                 exponent: String::from(TEST_RSA_PUB_EXPONENT),
-            }
+            }])
         }
 
         pub fn generate_jwt(thumbprint: &str, aud: &'static str) -> String {
