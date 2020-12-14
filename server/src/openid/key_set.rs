@@ -1,8 +1,10 @@
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::openid::authority::{Authority, Claims};
+use crate::openid::authority::Authority;
 
-pub async fn get_key_set<C: Claims>(authority: Authority<C>) -> Result<KeySet, reqwest::Error> {
+pub async fn get_key_set<Claims: DeserializeOwned>(
+    authority: &Authority<Claims>,
+) -> Result<KeySet, reqwest::Error> {
     let keys_uri = reqwest::get(&authority.metadata_path())
         .await?
         .json::<Metadata>()
