@@ -4,7 +4,7 @@ use reqwest;
 use tokio::sync::{Mutex, MutexGuard};
 
 use crate::openid::authority::Authority;
-use crate::openid::key_set::{get_key_set, KeySet};
+use crate::openid::key_set::{get_key_set, Key, KeySet};
 
 pub struct Validator {
     authority: Authority,
@@ -24,14 +24,24 @@ impl Validator {
         })
     }
 
-    pub async fn validate(&self, jwt: JWT) -> bool {
+    pub async fn validate(&self, jwt: &JWT) -> bool {
         let mut guard = self.cached_key_set.lock().await;
 
         if let Some(signing_key) = guard.key_set.key_with_thumbprint(&jwt.id) {
-            true
-        } else {
-            self.try_refresh_msa_key_set(&mut guard).await
+            return Validator::validate_with_key(jwt, signing_key);
         }
+
+        if self.try_refresh_msa_key_set(&mut guard).await {
+            if let Some(signing_key) = guard.key_set.key_with_thumbprint(&jwt.id) {
+                return Validator::validate_with_key(jwt, signing_key);
+            }
+        }
+
+        false
+    }
+
+    fn validate_with_key(_jwt: &JWT, _signing_key: &Key) -> bool {
+        true
     }
 
     /// Try and refresh the MSA key set. Returns a boolean representing if the
