@@ -120,7 +120,7 @@ mod test {
             Duration::from_secs(0),
         );
 
-        let token = utils::generate_jwt("keyid", "my::aud");
+        let token = utils::generate_jwt("keyid", "my::aud", 3);
 
         assert!(validator.validate(&token).await);
     }
@@ -140,7 +140,7 @@ mod test {
             Duration::from_millis(1),
         );
 
-        let token = utils::generate_jwt("keyid", "my::aud");
+        let token = utils::generate_jwt("keyid", "my::aud", 3);
 
         // First validation should fail because fetcher will return an empty keyset.
         assert!(!validator.validate(&token).await);
@@ -156,10 +156,37 @@ mod test {
         assert!(validator.validate(&token).await);
     }
 
+    #[tokio::test]
+    /// Tests that a JWT with an aud not matching ours is rejected.
+    async fn test_validation_rejects_mismatched_aud() {
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
+            Duration::from_secs(0),
+        );
+
+        let token = utils::generate_jwt("keyid", "not::my::aud", 3);
+
+        assert!(!validator.validate(&token).await);
+    }
+
+    #[tokio::test]
+    /// Tests that an expired JWT (via `exp`) is rejected.
+    async fn test_validation_rejects_expired() {
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
+            Duration::from_secs(0),
+        );
+
+        let token = utils::generate_jwt("keyid", "not::my::aud", 1);
+
+        tokio::time::sleep(Duration::from_millis(2)).await;
+
+        assert!(!validator.validate(&token).await);
+    }
+
     /// future tests:
-    /// - empty first key set, sleep, full second key set
-    /// - rejects mismatched aud
-    /// - rejects expired
     /// - rejects mal-signed
     /// - rejects invalid format
 
@@ -187,13 +214,13 @@ mod test {
             }])
         }
 
-        pub fn generate_jwt(thumbprint: &str, aud: &'static str) -> String {
+        pub fn generate_jwt(thumbprint: &str, aud: &'static str, exp_ms: u64) -> String {
             let mut header = Header::new(Algorithm::RS256);
             header.kid = Some(String::from(thumbprint));
 
             let claims = TestClaims {
                 aud: String::from(aud),
-                exp: (SystemTime::now() + Duration::from_secs(10))
+                exp: (SystemTime::now() + Duration::from_millis(exp_ms))
                     .duration_since(UNIX_EPOCH)
                     .expect("Time went backwards!")
                     .as_secs(),
