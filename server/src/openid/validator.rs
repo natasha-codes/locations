@@ -186,6 +186,29 @@ mod test {
         assert!(!validator.validate(&token).await);
     }
 
+    #[tokio::test]
+    /// Tests that a JWT with an invalid (manually broken) signature is rejected.
+    async fn test_validation_rejects_invalid_signature() {
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
+            Duration::from_secs(0),
+        );
+
+        let mut token = utils::generate_jwt("keyid", "my::aud", 3);
+
+        assert!(validator.validate(&token).await);
+
+        // Manually break the signature by swapping the last char
+        let last_char = token.pop().expect("Token was empty");
+        token.push(match last_char {
+            'a' => 'b',
+            _ => 'a',
+        });
+
+        assert!(!validator.validate(&token).await);
+    }
+
     /// future tests:
     /// - rejects mal-signed
     /// - rejects invalid format
