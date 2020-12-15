@@ -125,6 +125,37 @@ mod test {
         assert!(validator.validate(&token).await);
     }
 
+    #[tokio::test]
+    /// Tests that if a cache refresh returns a keyset missing the key
+    /// then the validation fails. Also checks that an immediate subsequent
+    /// validation fails, and that a validation after a sufficient delay
+    /// succeeds.
+    async fn test_validation_fails_if_refresh_doesnt_return_key() {
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new_with_multiple(
+                KeySet::empty(),
+                utils::generate_keyset("keyid"),
+            ),
+            Duration::from_millis(1),
+        );
+
+        let token = utils::generate_jwt("keyid", "my::aud");
+
+        // First validation should fail because fetcher will return an empty keyset.
+        assert!(!validator.validate(&token).await);
+
+        // Second immediate validation should fail because fetcher will decline to
+        // refresh the keyset.
+        assert!(!validator.validate(&token).await);
+
+        tokio::time::sleep(Duration::from_millis(1)).await;
+
+        // Third validation should succeed because fetcher will provide the keyset
+        // with the right key.
+        assert!(validator.validate(&token).await);
+    }
+
     /// future tests:
     /// - empty first key set, sleep, full second key set
     /// - rejects mismatched aud
