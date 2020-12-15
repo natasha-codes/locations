@@ -209,9 +209,17 @@ mod test {
         assert!(!validator.validate(&token).await);
     }
 
-    /// future tests:
-    /// - rejects mal-signed
-    /// - rejects invalid format
+    #[tokio::test]
+    /// Tests that a malformed JWT is rejected.
+    async fn test_validation_rejects_malformed_jwt() {
+        let mut validator = Validator::new_with_config(
+            utils::generate_authority("my::aud"),
+            utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
+            Duration::from_secs(0),
+        );
+
+        assert!(!validator.validate("not_a_jwt_not_even_close").await);
+    }
 
     mod utils {
         use std::time::{SystemTime, UNIX_EPOCH};
