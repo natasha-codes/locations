@@ -3,10 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D9106B2B25898B11004C257F /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D9106B2A25898B11004C257F /* AppAuth */; };
+		D9106B2D25898B11004C257F /* AppAuthCore in Frameworks */ = {isa = PBXBuildFile; productRef = D9106B2C25898B11004C257F /* AppAuthCore */; };
+		D9106B3025898BFA004C257F /* OpenID.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9106B2F25898BFA004C257F /* OpenID.swift */; };
 		D92924BD2584A92E00DDCE97 /* LocationsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92924BC2584A92E00DDCE97 /* LocationsApp.swift */; };
 		D92924BF2584A92E00DDCE97 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92924BE2584A92E00DDCE97 /* ContentView.swift */; };
 		D92924C12584A92F00DDCE97 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D92924C02584A92F00DDCE97 /* Assets.xcassets */; };
@@ -14,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D9106B2F25898BFA004C257F /* OpenID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenID.swift; sourceTree = "<group>"; };
 		D92924B92584A92E00DDCE97 /* Locations.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Locations.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D92924BC2584A92E00DDCE97 /* LocationsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationsApp.swift; sourceTree = "<group>"; };
 		D92924BE2584A92E00DDCE97 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -27,6 +31,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9106B2B25898B11004C257F /* AppAuth in Frameworks */,
+				D9106B2D25898B11004C257F /* AppAuthCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,6 +63,7 @@
 				D92924C02584A92F00DDCE97 /* Assets.xcassets */,
 				D92924C52584A92F00DDCE97 /* Info.plist */,
 				D92924C22584A92F00DDCE97 /* Preview Content */,
+				D9106B2F25898BFA004C257F /* OpenID.swift */,
 			);
 			path = Locations;
 			sourceTree = "<group>";
@@ -85,6 +92,10 @@
 			dependencies = (
 			);
 			name = Locations;
+			packageProductDependencies = (
+				D9106B2A25898B11004C257F /* AppAuth */,
+				D9106B2C25898B11004C257F /* AppAuthCore */,
+			);
 			productName = Locations;
 			productReference = D92924B92584A92E00DDCE97 /* Locations.app */;
 			productType = "com.apple.product-type.application";
@@ -112,6 +123,9 @@
 				Base,
 			);
 			mainGroup = D92924B02584A92E00DDCE97;
+			packageReferences = (
+				D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
+			);
 			productRefGroup = D92924BA2584A92E00DDCE97 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -139,6 +153,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D92924BF2584A92E00DDCE97 /* ContentView.swift in Sources */,
+				D9106B3025898BFA004C257F /* OpenID.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* LocationsApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -328,6 +343,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/openid/AppAuth-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D9106B2A25898B11004C257F /* AppAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */;
+			productName = AppAuth;
+		};
+		D9106B2C25898B11004C257F /* AppAuthCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */;
+			productName = AppAuthCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D92924B12584A92E00DDCE97 /* Project object */;
 }
