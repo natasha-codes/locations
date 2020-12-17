@@ -1,6 +1,6 @@
 //
 //  OpenIDViewController.swift
-//  Locations
+//  Sonar
 //
 //  Created by Sasha Weiss on 12/16/20.
 //

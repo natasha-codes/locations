@@ -1,6 +1,6 @@
 //
-//  LocationsApp.swift
-//  Locations
+//  SonarApp.swift
+//  Sonar
 //
 //  Created by Sasha Weiss on 12/11/20.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct LocationsApp: App {
+struct SonarApp: App {
     var body: some Scene {
         WindowGroup {
             AuthView()

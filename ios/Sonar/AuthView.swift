@@ -1,6 +1,6 @@
 //
 //  AuthView.swift
-//  Locations
+//  Sonar
 //
 //  Created by Sasha Weiss on 12/11/20.
 //
