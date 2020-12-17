@@ -11,7 +11,9 @@ import SwiftUI
 struct SonarApp: App {
     var body: some Scene {
         WindowGroup {
-            AuthView()
+            AuthView().onOpenURL(perform: { url in
+                print("url: \(url)")
+            })
         }
     }
 }

@@ -14,6 +14,7 @@ final class OpenIDView {
     static let kMSAIssuer = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
     static let kMSAClientID = "97b5900d-bdbe-41bf-8afb-39fdcb0993ee"
     static let kMSARedirectURL = URL(string: "msauth.com.natasha-codes.sonar://auth")!
+    static let kMSAUserReadScope = "User.Read"
 
     private var authState: OIDAuthState?
     private var currentAuthSession: OIDExternalUserAgentSession?
@@ -44,7 +45,7 @@ final class OpenIDView {
 
             let authRequest = OIDAuthorizationRequest(configuration: configuration,
                                                       clientId: OpenIDView.kMSAClientID,
-                                                      scopes: nil,
+                                                      scopes: [OpenIDView.kMSAUserReadScope],
                                                       redirectURL: OpenIDView.kMSARedirectURL,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)

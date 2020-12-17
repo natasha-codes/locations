@@ -99,7 +99,7 @@
 				D9106B2A25898B11004C257F /* AppAuth */,
 				D9106B2C25898B11004C257F /* AppAuthCore */,
 			);
-			productName = Locations;
+			productName = Sonar;
 			productReference = D92924B92584A92E00DDCE97 /* Sonar.app */;
 			productType = "com.apple.product-type.application";
 		};
