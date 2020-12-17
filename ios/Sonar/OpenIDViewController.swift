@@ -19,12 +19,6 @@ final class OpenIDView {
     private var authState: OIDAuthState?
     private var currentAuthSession: OIDExternalUserAgentSession?
 
-    func handleAuthUrl(url: URL) {
-        if let authSession = self.currentAuthSession, authSession.resumeExternalUserAgentFlow(with: url) {
-            self.currentAuthSession = nil
-        }
-    }
-
     fileprivate func initiateAuth(presenter: UIViewController) {
         self.getAuthToken(presenter: presenter) { result in
             print("\(result)")
@@ -50,6 +44,7 @@ final class OpenIDView {
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
 
+            // Take a reference to the auth session here to keep it from dealloc-ing
             self.currentAuthSession = OIDAuthState.authState(byPresenting: authRequest,
                                                              presenting: presenter) { [weak self] state, error in
                 guard let self = self else {

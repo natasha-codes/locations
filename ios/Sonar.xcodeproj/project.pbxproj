@@ -10,7 +10,6 @@
 		D9106B2B25898B11004C257F /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D9106B2A25898B11004C257F /* AppAuth */; };
 		D9106B2D25898B11004C257F /* AppAuthCore in Frameworks */ = {isa = PBXBuildFile; productRef = D9106B2C25898B11004C257F /* AppAuthCore */; };
 		D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92924BC2584A92E00DDCE97 /* SonarApp.swift */; };
-		D92924BF2584A92E00DDCE97 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92924BE2584A92E00DDCE97 /* AuthView.swift */; };
 		D92924C12584A92F00DDCE97 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D92924C02584A92F00DDCE97 /* Assets.xcassets */; };
 		D94214FD258C054B00A06B4A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94214FC258C054B00A06B4A /* Preview Assets.xcassets */; };
 		D97A0F83258AC53200E3016C /* OpenIDViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97A0F82258AC53200E3016C /* OpenIDViewController.swift */; };
@@ -20,7 +19,6 @@
 /* Begin PBXFileReference section */
 		D92924B92584A92E00DDCE97 /* Sonar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sonar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D92924BC2584A92E00DDCE97 /* SonarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonarApp.swift; sourceTree = "<group>"; };
-		D92924BE2584A92E00DDCE97 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		D92924C02584A92F00DDCE97 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D92924C52584A92F00DDCE97 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D94214FC258C054B00A06B4A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -61,7 +59,6 @@
 			isa = PBXGroup;
 			children = (
 				D92924C52584A92F00DDCE97 /* Info.plist */,
-				D92924BE2584A92E00DDCE97 /* AuthView.swift */,
 				D97A0F82258AC53200E3016C /* OpenIDViewController.swift */,
 				D92924BC2584A92E00DDCE97 /* SonarApp.swift */,
 				D92924C02584A92F00DDCE97 /* Assets.xcassets */,
@@ -156,7 +153,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D92924BF2584A92E00DDCE97 /* AuthView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
 				D97A0F83258AC53200E3016C /* OpenIDViewController.swift in Sources */,
 			);
