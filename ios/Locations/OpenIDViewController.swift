@@ -10,41 +10,30 @@ import Foundation
 import SwiftUI
 import UIKit
 
-struct OpenIDView: UIViewControllerRepresentable {
-    func makeUIViewController(context _: Context) -> some UIViewController {
-        OpenIDViewController()
-    }
-
-    func updateUIViewController(_: UIViewControllerType, context _: Context) {}
-}
-
-class OpenIDViewController: UIViewController {
+final class OpenIDView {
     static let kMSAIssuer = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
     static let kMSAClientID = "97b5900d-bdbe-41bf-8afb-39fdcb0993ee"
     static let kMSARedirectURL = URL(string: "msauth.com.natasha-codes.Locations://auth")!
 
-    @IBOutlet var doTheAuthButton: UIButton!
+    private var authState: OIDAuthState?
+    private var currentAuthSession: OIDExternalUserAgentSession?
 
-    var authState: OIDAuthState?
-
-    convenience init() {
-        self.init(nibName: "OpenIDView", bundle: nil)
+    func handleAuthUrl(url: URL) {
+        if let authSession = self.currentAuthSession, authSession.resumeExternalUserAgentFlow(with: url) {
+            self.currentAuthSession = nil
+        }
     }
 
-    override func viewDidLoad() {
-        self.doTheAuthButton.addTarget(self, action: #selector(self.doTheAuth), for: .touchUpInside)
-    }
-
-    @objc private func doTheAuth() {
-        self.getAuthToken { result in
+    fileprivate func initiateAuth(presenter: UIViewController) {
+        self.getAuthToken(presenter: presenter) { result in
             print("\(result)")
         }
     }
 
-    private func getAuthToken(completion: @escaping (Result<String, String>) -> Void) {
-        OIDAuthorizationService.discoverConfiguration(forIssuer: OpenIDViewController.kMSAIssuer) { [weak self] configuration, error in
+    private func getAuthToken(presenter: UIViewController, completion: @escaping (Result<String, String>) -> Void) {
+        OIDAuthorizationService.discoverConfiguration(forIssuer: OpenIDView.kMSAIssuer) { [weak self] configuration, error in
             guard let self = self else {
-                completion(.failure("I was dealloc-ed :("))
+                completion(.failure("Dealloced discovering configuration"))
                 return
             }
 
@@ -54,19 +43,16 @@ class OpenIDViewController: UIViewController {
             }
 
             let authRequest = OIDAuthorizationRequest(configuration: configuration,
-                                                      clientId: OpenIDViewController.kMSAClientID,
+                                                      clientId: OpenIDView.kMSAClientID,
                                                       scopes: nil,
-                                                      redirectURL: OpenIDViewController.kMSARedirectURL,
+                                                      redirectURL: OpenIDView.kMSARedirectURL,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
 
-            let appDelegateUncasted = UIApplication.shared.delegate!
-            let appDelegate = appDelegateUncasted as! AppDelegate
-
-            appDelegate.currentAuthSession = OIDAuthState.authState(byPresenting: authRequest,
-                                                                    presenting: self) { [weak self] state, error in
+            self.currentAuthSession = OIDAuthState.authState(byPresenting: authRequest,
+                                                             presenting: presenter) { [weak self] state, error in
                 guard let self = self else {
-                    completion(.failure("I was dealloc-ed, part two :("))
+                    completion(.failure("Dealloced getting auth state"))
                     return
                 }
 
@@ -80,6 +66,42 @@ class OpenIDViewController: UIViewController {
                 }
             }
         }
+    }
+}
+
+extension OpenIDView: UIViewControllerRepresentable {
+    typealias UIViewControllerType = OpenIDViewController
+
+    func makeUIViewController(context _: Context) -> OpenIDViewController {
+        OpenIDViewController(onButtonPress: { [weak self] presenter in
+            guard let self = self else {
+                print("Dealloced in button press closure")
+                return
+            }
+
+            self.initiateAuth(presenter: presenter)
+        })
+    }
+
+    func updateUIViewController(_: OpenIDViewController, context _: Context) {}
+}
+
+class OpenIDViewController: UIViewController {
+    @IBOutlet var doTheAuthButton: UIButton!
+
+    private var onButtonPress: ((OpenIDViewController) -> Void)?
+
+    convenience init(onButtonPress: @escaping (OpenIDViewController) -> Void) {
+        self.init(nibName: "OpenIDView", bundle: nil)
+        self.onButtonPress = onButtonPress
+    }
+
+    override func viewDidLoad() {
+        self.doTheAuthButton.addTarget(self, action: #selector(self.onButtonPressSelector), for: .touchUpInside)
+    }
+
+    @objc private func onButtonPressSelector() {
+        self.onButtonPress?(self)
     }
 }
 

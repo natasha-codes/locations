@@ -20,9 +20,9 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9nl-vE-IaD">
-                    <rect key="frame" x="137" y="430" width="140" height="46"/>
+                    <rect key="frame" x="140" y="430" width="134" height="46"/>
                     <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
-                    <state key="normal" title="Do the auth"/>
+                    <state key="normal" title="Do OpenID"/>
                 </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="Oyw-HZ-kUP"/>
