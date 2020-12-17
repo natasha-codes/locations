@@ -1,5 +1,5 @@
 {
-  description = "locations - find your friends";
+  description = "sonar - find your friends";
 
   inputs = {
     utils.url = "github:numtide/flake-utils";
@@ -34,7 +34,7 @@
         rec {
           # `nix build`
           packages.server = naersk-lib.buildPackage {
-            pname = "locations";
+            pname = "sonar";
             root = ./.;
           };
           defaultPackage = packages.server;

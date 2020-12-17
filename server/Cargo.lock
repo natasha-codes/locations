@@ -746,21 +746,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1482821306169ec4d07f6aca392a4681f66c75c9918aa49641a2595db64053cb"
 
 [[package]]
-name = "locations"
-version = "0.0.1"
-dependencies = [
- "async-trait",
- "jsonwebtoken",
- "reqwest",
- "rocket",
- "rocket_contrib",
- "serde",
- "serde_derive",
- "serde_json",
- "tokio 0.3.6",
-]
-
-[[package]]
 name = "lock_api"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1569,6 +1554,21 @@ dependencies = [
  "libc",
  "redox_syscall",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "sonar"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "jsonwebtoken",
+ "reqwest",
+ "rocket",
+ "rocket_contrib",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tokio 0.3.6",
 ]
 
 [[package]]
