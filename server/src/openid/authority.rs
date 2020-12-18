@@ -31,16 +31,16 @@ impl<Claims: DeserializeOwned> Authority<Claims> {
 }
 
 impl Authority<MSAClaims> {
+    /// Represents our app registration with the MSA OpenID Connect authority. Uses
+    /// "consumers" tenant because our MSA app is only accessible by personal MSAs.
+    ///
     /// See: https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#fetch-the-openid-connect-metadata-document
-    /// Uses "consumers" tenant below because our MSA app is only accessible by personal MSAs.
     pub const MSA: Self = Self {
         domain: "https://login.microsoftonline.com/consumers/v2.0",
-        aud: "our::azure::aud",
+        aud: "97b5900d-bdbe-41bf-8afb-39fdcb0993ee",
         claims: PhantomData,
     };
 }
 
 #[derive(Deserialize)]
-pub struct MSAClaims {
-    oid: String,
-}
+pub struct MSAClaims {}

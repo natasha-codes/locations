@@ -58,6 +58,12 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
                     validation.set_audience(&[self.authority.aud()]);
 
                     let decode_result = decode::<C>(jwt, &decoding_key, &validation);
+
+                    match decode_result {
+                        Ok(ref token_data) => println!("{:?}", token_data.header),
+                        Err(ref err) => println!("{:?}", err),
+                    }
+
                     return decode_result.is_ok();
                 }
             }

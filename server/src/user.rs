@@ -1,9 +1,7 @@
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 
-pub struct User {
-    uid: String,
-}
+pub struct User {}
 
 impl<'a, 'r> FromRequest<'a, 'r> for User {
     type Error = AuthError;
