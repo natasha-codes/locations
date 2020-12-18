@@ -17,6 +17,6 @@ struct MSAOpenIDAuthority {}
 
 extension MSAOpenIDAuthority: OpenIDAuthority {
     static let clientId: String = "97b5900d-bdbe-41bf-8afb-39fdcb0993ee"
-    static let redirectUri: URL = URL(string: "msauth.com.natasha-codes.sonar://auth/")!
-    static let issuer: URL = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
+    static let redirectUri = URL(string: "msauth.com.natasha-codes.sonar://auth/")!
+    static let issuer = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
 }

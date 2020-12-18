@@ -27,7 +27,7 @@ final class OpenIDView<Authority: OpenIDAuthority> {
                 return
             }
 
-            self.authState?.performAction(freshTokens: { _accessToken, idToken, error in
+            self.authState?.performAction(freshTokens: { _, idToken, error in
                 if let idToken = idToken {
                     print("ID token: \(idToken)")
                 } else if let error = error {
@@ -37,7 +37,7 @@ final class OpenIDView<Authority: OpenIDAuthority> {
         }
     }
 
-    private func performAuthorization(presenter: UIViewController, completion: @escaping (Result<(), String>) -> Void) {
+    private func performAuthorization(presenter: UIViewController, completion: @escaping (Result<Void, String>) -> Void) {
         OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { [weak self] configuration, error in
             guard let self = self else {
                 completion(.failure("Dealloced discovering configuration"))
