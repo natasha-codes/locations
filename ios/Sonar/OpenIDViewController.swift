@@ -10,22 +10,39 @@ import Foundation
 import SwiftUI
 import UIKit
 
+/**
+ Performs an OpenID Connect (OIDC) flow to get an `id_token` for a user, via the
+ AppAuth-iOS library.
+
+ OIDC flow details: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow
+ AppAuth-iOS: https://github.com/openid/AppAuth-iOS
+ */
 final class OpenIDView {
     static let kMSAIssuer = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
     static let kMSAClientID = "97b5900d-bdbe-41bf-8afb-39fdcb0993ee"
     static let kMSARedirectURL = URL(string: "msauth.com.natasha-codes.sonar://auth/")!
-    static let kMSAUserReadScope = "User.Read"
 
     private var authState: OIDAuthState?
     private var currentAuthSession: OIDExternalUserAgentSession?
 
     fileprivate func initiateAuth(presenter: UIViewController) {
-        self.getAuthToken(presenter: presenter) { result in
-            print("\(result)")
+        self.performAuthorization(presenter: presenter) { result in
+            if case let .failure(err) = result {
+                print(err)
+                return
+            }
+
+            self.authState?.performAction(freshTokens: { _accessToken, idToken, error in
+                if let idToken = idToken {
+                    print("ID token: \(idToken)")
+                } else if let error = error {
+                    print("Error performing action with fresh tokens: \(error)")
+                }
+            }, additionalRefreshParameters: nil)
         }
     }
 
-    private func getAuthToken(presenter: UIViewController, completion: @escaping (Result<String, String>) -> Void) {
+    private func performAuthorization(presenter: UIViewController, completion: @escaping (Result<(), String>) -> Void) {
         OIDAuthorizationService.discoverConfiguration(forIssuer: OpenIDView.kMSAIssuer) { [weak self] configuration, error in
             guard let self = self else {
                 completion(.failure("Dealloced discovering configuration"))
@@ -39,7 +56,7 @@ final class OpenIDView {
 
             let authRequest = OIDAuthorizationRequest(configuration: configuration,
                                                       clientId: OpenIDView.kMSAClientID,
-                                                      scopes: [OpenIDView.kMSAUserReadScope],
+                                                      scopes: ["openid"],
                                                       redirectURL: OpenIDView.kMSARedirectURL,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
@@ -54,11 +71,10 @@ final class OpenIDView {
 
                 if let state = state {
                     self.authState = state
-
-                    print("ID token: \(self.authState!.lastTokenResponse?.idToken ?? "No ID token?")")
+                    completion(.success(()))
                 } else {
+                    self.authState = nil
                     completion(.failure("Error performing auth request: \(error?.localizedDescription ?? "Unknown error")"))
-                    return
                 }
             }
         }
