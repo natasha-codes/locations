@@ -18,6 +18,7 @@
 		D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */; };
 		D9B8FB03258D4E3300A1BC7A /* OpenIDView.xib in Resources */ = {isa = PBXBuildFile; fileRef = D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */; };
 		D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */; };
+		D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB08258D528E00A1BC7A /* SignedInView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDView.swift; sourceTree = "<group>"; };
 		D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OpenIDView.xib; sourceTree = "<group>"; };
 		D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultExtensions.swift; sourceTree = "<group>"; };
+		D9B8FB08258D528E00A1BC7A /* SignedInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedInView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 				D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */,
 				D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */,
 				D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */,
+				D9B8FB08258D528E00A1BC7A /* SignedInView.swift */,
 			);
 			path = Sonar;
 			sourceTree = "<group>";
@@ -178,6 +181,7 @@
 				D9B8FAF9258D38FE00A1BC7A /* AuthView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
 				D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */,
+				D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */,
 				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

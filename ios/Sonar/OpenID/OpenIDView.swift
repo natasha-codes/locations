@@ -6,7 +6,6 @@
 //
 
 import AppAuth
-import Foundation
 import SwiftUI
 import UIKit
 
@@ -36,13 +35,7 @@ final class OpenIDView<Authority: OpenIDAuthority> {
             case let .failure(err):
                 print(err)
             case let .success(authState):
-                authState.performAction(freshTokens: { _, idToken, error in
-                    if let idToken = idToken {
-                        print("ID token: \(idToken)")
-                    } else if let error = error {
-                        print("Error performing action with fresh tokens: \(error)")
-                    }
-                }, additionalRefreshParameters: nil)
+                self.auth = Auth(authState: authState)
             }
         }
     }

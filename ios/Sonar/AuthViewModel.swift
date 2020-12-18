@@ -15,13 +15,15 @@ class AuthViewModel: ObservableObject {
 }
 
 struct Auth {
+    typealias Token = String
+
     private let authState: OIDAuthState
 
     init(authState: OIDAuthState) {
         self.authState = authState
     }
 
-    func doWithAuth(action: @escaping (_ token: Result<String, AuthError>) -> Void) {
+    func doWithAuth(action: @escaping (_ token: Result<Token, AuthError>) -> Void) {
         self.authState.performAction { _accessToken, idToken, err in
             if let idToken = idToken {
                 action(.success(idToken))
