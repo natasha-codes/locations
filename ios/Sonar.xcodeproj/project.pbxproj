@@ -12,10 +12,10 @@
 		D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92924BC2584A92E00DDCE97 /* SonarApp.swift */; };
 		D92924C12584A92F00DDCE97 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D92924C02584A92F00DDCE97 /* Assets.xcassets */; };
 		D94214FD258C054B00A06B4A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94214FC258C054B00A06B4A /* Preview Assets.xcassets */; };
-		D97A0F83258AC53200E3016C /* OpenIDViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97A0F82258AC53200E3016C /* OpenIDViewController.swift */; };
-		D97A0F8B258AD94D00E3016C /* OpenIDView.xib in Resources */ = {isa = PBXBuildFile; fileRef = D97A0F8A258AD94D00E3016C /* OpenIDView.xib */; };
 		D9B8FAED258C4BE500A1BC7A /* OpenIDAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAEC258C4BE500A1BC7A /* OpenIDAuthority.swift */; };
-		D9B8FAF2258C4DA200A1BC7A /* MsaAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAF1258C4DA200A1BC7A /* MsaAuthView.swift */; };
+		D9B8FAF5258D367500A1BC7A /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */; };
+		D9B8FAF9258D38FE00A1BC7A /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */; };
+		D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,10 +24,10 @@
 		D92924C02584A92F00DDCE97 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D92924C52584A92F00DDCE97 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D94214FC258C054B00A06B4A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		D97A0F82258AC53200E3016C /* OpenIDViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDViewController.swift; sourceTree = "<group>"; };
-		D97A0F8A258AD94D00E3016C /* OpenIDView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OpenIDView.xib; sourceTree = "<group>"; };
 		D9B8FAEC258C4BE500A1BC7A /* OpenIDAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDAuthority.swift; sourceTree = "<group>"; };
-		D9B8FAF1258C4DA200A1BC7A /* MsaAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsaAuthView.swift; sourceTree = "<group>"; };
+		D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,8 +66,9 @@
 				D92924C52584A92F00DDCE97 /* Info.plist */,
 				D92924BC2584A92E00DDCE97 /* SonarApp.swift */,
 				D92924C02584A92F00DDCE97 /* Assets.xcassets */,
-				D97A0F8A258AD94D00E3016C /* OpenIDView.xib */,
 				D94214FB258C054B00A06B4A /* Preview Content */,
+				D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */,
+				D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */,
 			);
 			path = Sonar;
 			sourceTree = "<group>";
@@ -83,9 +84,8 @@
 		D9B8FAEF258C4C4300A1BC7A /* OpenID */ = {
 			isa = PBXGroup;
 			children = (
-				D97A0F82258AC53200E3016C /* OpenIDViewController.swift */,
 				D9B8FAEC258C4BE500A1BC7A /* OpenIDAuthority.swift */,
-				D9B8FAF1258C4DA200A1BC7A /* MsaAuthView.swift */,
+				D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */,
 			);
 			path = OpenID;
 			sourceTree = "<group>";
@@ -156,7 +156,6 @@
 			files = (
 				D92924C12584A92F00DDCE97 /* Assets.xcassets in Resources */,
 				D94214FD258C054B00A06B4A /* Preview Assets.xcassets in Resources */,
-				D97A0F8B258AD94D00E3016C /* OpenIDView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,10 +166,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9B8FAF5258D367500A1BC7A /* AuthViewModel.swift in Sources */,
 				D9B8FAED258C4BE500A1BC7A /* OpenIDAuthority.swift in Sources */,
+				D9B8FAF9258D38FE00A1BC7A /* AuthView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
-				D9B8FAF2258C4DA200A1BC7A /* MsaAuthView.swift in Sources */,
-				D97A0F83258AC53200E3016C /* OpenIDViewController.swift in Sources */,
+				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

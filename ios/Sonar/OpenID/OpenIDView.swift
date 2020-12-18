@@ -1,8 +1,8 @@
 //
-//  OpenIDViewController.swift
+//  OpenIDView.swift
 //  Sonar
 //
-//  Created by Sasha Weiss on 12/16/20.
+//  Created by Sasha Weiss on 12/18/20.
 //
 
 import AppAuth
@@ -80,9 +80,8 @@ extension OpenIDView: UIViewControllerRepresentable {
     typealias UIViewControllerType = OpenIDViewController
 
     func makeUIViewController(context _: Context) -> OpenIDViewController {
-        OpenIDViewController(onButtonPress: { [weak self] presenter in
+        OpenIDViewController(onLoad: { [weak self] presenter in
             guard let self = self else {
-                print("Dealloced in button press closure")
                 return
             }
 
@@ -94,21 +93,15 @@ extension OpenIDView: UIViewControllerRepresentable {
 }
 
 class OpenIDViewController: UIViewController {
-    @IBOutlet var doTheAuthButton: UIButton!
+    private var onLoad: ((OpenIDViewController) -> Void)?
 
-    private var onButtonPress: ((OpenIDViewController) -> Void)?
-
-    convenience init(onButtonPress: @escaping (OpenIDViewController) -> Void) {
-        self.init(nibName: "OpenIDView", bundle: nil)
-        self.onButtonPress = onButtonPress
+    convenience init(onLoad: @escaping (OpenIDViewController) -> Void) {
+        self.init()
+        self.onLoad = onLoad
     }
 
     override func viewDidLoad() {
-        self.doTheAuthButton.addTarget(self, action: #selector(self.onButtonPressSelector), for: .touchUpInside)
-    }
-
-    @objc private func onButtonPressSelector() {
-        self.onButtonPress?(self)
+        self.onLoad?(self)
     }
 }
 
