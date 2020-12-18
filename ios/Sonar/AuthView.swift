@@ -15,7 +15,7 @@ struct AuthView: View {
         if let _auth = self.authViewModel.auth {
             Text("You're signed in!")
         } else {
-            OpenIDView<MSAOpenIDAuthority>()
+            OpenIDView<MSAOpenIDAuthority>(auth: $authViewModel.auth)
         }
     }
 }

@@ -16,6 +16,8 @@
 		D9B8FAF5258D367500A1BC7A /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */; };
 		D9B8FAF9258D38FE00A1BC7A /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */; };
 		D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */; };
+		D9B8FB03258D4E3300A1BC7A /* OpenIDView.xib in Resources */ = {isa = PBXBuildFile; fileRef = D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */; };
+		D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +30,8 @@
 		D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDView.swift; sourceTree = "<group>"; };
+		D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OpenIDView.xib; sourceTree = "<group>"; };
+		D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +73,7 @@
 				D94214FB258C054B00A06B4A /* Preview Content */,
 				D9B8FAF4258D367500A1BC7A /* AuthViewModel.swift */,
 				D9B8FAF8258D38FE00A1BC7A /* AuthView.swift */,
+				D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */,
 			);
 			path = Sonar;
 			sourceTree = "<group>";
@@ -86,6 +91,7 @@
 			children = (
 				D9B8FAEC258C4BE500A1BC7A /* OpenIDAuthority.swift */,
 				D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */,
+				D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */,
 			);
 			path = OpenID;
 			sourceTree = "<group>";
@@ -156,6 +162,7 @@
 			files = (
 				D92924C12584A92F00DDCE97 /* Assets.xcassets in Resources */,
 				D94214FD258C054B00A06B4A /* Preview Assets.xcassets in Resources */,
+				D9B8FB03258D4E3300A1BC7A /* OpenIDView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +177,7 @@
 				D9B8FAED258C4BE500A1BC7A /* OpenIDAuthority.swift in Sources */,
 				D9B8FAF9258D38FE00A1BC7A /* AuthView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
+				D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */,
 				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

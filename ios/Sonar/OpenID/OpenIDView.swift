@@ -17,27 +17,37 @@ import UIKit
  OIDC flow details: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow
  */
 final class OpenIDView<Authority: OpenIDAuthority> {
-    private var authState: OIDAuthState?
     private var currentAuthSession: OIDExternalUserAgentSession?
 
+    @Binding var auth: Auth?
+
+    init(auth: Binding<Auth?>?) {
+        self._auth = auth ?? Binding.constant(nil)
+    }
+
     fileprivate func initiateAuth(presenter: UIViewController) {
-        self.performAuthorization(presenter: presenter) { result in
+        self.getAuthState(presenter: presenter) { result in
             if case let .failure(err) = result {
                 print(err)
                 return
             }
 
-            self.authState?.performAction(freshTokens: { _, idToken, error in
-                if let idToken = idToken {
-                    print("ID token: \(idToken)")
-                } else if let error = error {
-                    print("Error performing action with fresh tokens: \(error)")
-                }
-            }, additionalRefreshParameters: nil)
+            switch result {
+            case let .failure(err):
+                print(err)
+            case let .success(authState):
+                authState.performAction(freshTokens: { _, idToken, error in
+                    if let idToken = idToken {
+                        print("ID token: \(idToken)")
+                    } else if let error = error {
+                        print("Error performing action with fresh tokens: \(error)")
+                    }
+                }, additionalRefreshParameters: nil)
+            }
         }
     }
 
-    private func performAuthorization(presenter: UIViewController, completion: @escaping (Result<Void, String>) -> Void) {
+    private func getAuthState(presenter: UIViewController, completion: @escaping (Result<OIDAuthState, String>) -> Void) {
         OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { [weak self] configuration, error in
             guard let self = self else {
                 completion(.failure("Dealloced discovering configuration"))
@@ -58,17 +68,10 @@ final class OpenIDView<Authority: OpenIDAuthority> {
 
             // Take a reference to the auth session here to keep it from dealloc-ing
             self.currentAuthSession = OIDAuthState.authState(byPresenting: authRequest,
-                                                             presenting: presenter) { [weak self] state, error in
-                guard let self = self else {
-                    completion(.failure("Dealloced getting auth state"))
-                    return
-                }
-
+                                                             presenting: presenter) { state, error in
                 if let state = state {
-                    self.authState = state
-                    completion(.success(()))
+                    completion(.success(state))
                 } else {
-                    self.authState = nil
                     completion(.failure("Error performing auth request: \(error?.localizedDescription ?? "Unknown error")"))
                 }
             }
@@ -80,7 +83,7 @@ extension OpenIDView: UIViewControllerRepresentable {
     typealias UIViewControllerType = OpenIDViewController
 
     func makeUIViewController(context _: Context) -> OpenIDViewController {
-        OpenIDViewController(onLoad: { [weak self] presenter in
+        OpenIDViewController(authorityFriendlyName: Authority.friendlyName, onSignInPressed: { [weak self] presenter in
             guard let self = self else {
                 return
             }
@@ -93,16 +96,28 @@ extension OpenIDView: UIViewControllerRepresentable {
 }
 
 class OpenIDViewController: UIViewController {
-    private var onLoad: ((OpenIDViewController) -> Void)?
+    @IBOutlet var signInButton: UIButton!
 
-    convenience init(onLoad: @escaping (OpenIDViewController) -> Void) {
-        self.init()
-        self.onLoad = onLoad
+    private var authorityFriendlyName: String!
+    private var onSignInPressed: ((OpenIDViewController) -> Void)!
+
+    convenience init(authorityFriendlyName: String,
+                     onSignInPressed: @escaping (OpenIDViewController) -> Void) {
+        self.init(nibName: "OpenIDView", bundle: nil)
+
+        self.authorityFriendlyName = authorityFriendlyName
+        self.onSignInPressed = onSignInPressed
     }
 
     override func viewDidLoad() {
-        self.onLoad?(self)
+        self.signInButton
+            .setTitle("Sign in with \(self.authorityFriendlyName!)",
+                      for: .normal)
+
+        self.signInButton.addTarget(self, action: #selector(self.callOnSignInPressed), for: .touchUpInside)
+    }
+
+    @objc private func callOnSignInPressed() {
+        self.onSignInPressed?(self)
     }
 }
-
-extension String: Error {}
