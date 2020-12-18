@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Deserialize};
+use tokio_compat_02::FutureExt;
 
 use crate::openid::authority::Authority;
 
@@ -29,13 +30,23 @@ impl KeySetFetcher for NetworkKeySetFetcher {
         &mut self,
         authority: &Authority<Claims>,
     ) -> Result<KeySet, Self::Error> {
+        // Need the `.compat()` wrappers around futures from `reqwest`, since
+        // it uses Tokio 0.2 and we will be running on Tokio 0.3.
+
         let keys_uri = reqwest::get(&authority.metadata_path())
+            .compat() // shim
             .await?
             .json::<Metadata>()
+            .compat() // shim
             .await?
             .key_roster_uri;
 
-        reqwest::get(&keys_uri).await?.json::<KeySet>().await
+        reqwest::get(&keys_uri)
+            .compat() // shim
+            .await?
+            .json::<KeySet>()
+            .compat() // shim
+            .await
     }
 }
 
