@@ -48,13 +48,9 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
     /// this validator was initialized with. May perform a keyset cache refresh if
     /// the JWT was signed with a key we don't have locally.
     pub async fn validate(&mut self, jwt: &str) -> bool {
-        println!("one");
         if let Ok(header) = decode_header(jwt) {
-            println!("two");
             if let Some(thumbprint) = header.kid {
-                println!("three");
                 if let Some(key) = self.get_key(&thumbprint).await {
-                    println!("four");
                     let decoding_key =
                         DecodingKey::from_rsa_components(&key.modulus, &key.exponent);
 
