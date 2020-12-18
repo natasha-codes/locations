@@ -11,17 +11,12 @@ import SwiftUI
 import UIKit
 
 /**
- Performs an OpenID Connect (OIDC) flow to get an `id_token` for a user, via the
- AppAuth-iOS library.
+ A `View` that wraps an OpenID Connect (OIDC) flow to authenticate a user, via the
+ authority described by`Authority`.
 
  OIDC flow details: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow
- AppAuth-iOS: https://github.com/openid/AppAuth-iOS
  */
-final class OpenIDView {
-    static let kMSAIssuer = URL(string: "https://login.microsoftonline.com/consumers/v2.0")!
-    static let kMSAClientID = "97b5900d-bdbe-41bf-8afb-39fdcb0993ee"
-    static let kMSARedirectURL = URL(string: "msauth.com.natasha-codes.sonar://auth/")!
-
+final class OpenIDView<Authority: OpenIDAuthority> {
     private var authState: OIDAuthState?
     private var currentAuthSession: OIDExternalUserAgentSession?
 
@@ -43,7 +38,7 @@ final class OpenIDView {
     }
 
     private func performAuthorization(presenter: UIViewController, completion: @escaping (Result<(), String>) -> Void) {
-        OIDAuthorizationService.discoverConfiguration(forIssuer: OpenIDView.kMSAIssuer) { [weak self] configuration, error in
+        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { [weak self] configuration, error in
             guard let self = self else {
                 completion(.failure("Dealloced discovering configuration"))
                 return
@@ -55,9 +50,9 @@ final class OpenIDView {
             }
 
             let authRequest = OIDAuthorizationRequest(configuration: configuration,
-                                                      clientId: OpenIDView.kMSAClientID,
+                                                      clientId: Authority.clientId,
                                                       scopes: ["openid"],
-                                                      redirectURL: OpenIDView.kMSARedirectURL,
+                                                      redirectURL: Authority.redirectUri,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
 
