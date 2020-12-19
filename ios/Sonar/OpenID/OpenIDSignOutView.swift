@@ -11,13 +11,13 @@ struct OpenIDSignOutView<Authority: OpenIDAuthority>: View {
     @EnvironmentObject var authSession: OpenIDAuthSession<Authority>
 
     var body: some View {
-        OpenIDView<Authority>(buttonPrompt: "Sign in with \(Authority.friendlyName)") { viewController in
-            self.authSession.doSignIn(presenter: viewController) { result in
+        OpenIDView<Authority>(buttonPrompt: "Sign out from \(Authority.friendlyName)") { viewController in
+            self.authSession.doSignOut(presenter: viewController) { result in
                 switch result {
                 case .success:
-                    print("Sign in successful!")
+                    print("Sign out successful!")
                 case let .failure(error):
-                    print("Sign in failed: \(error)")
+                    print("Sign out failed: \(error)")
                 }
             }
         }

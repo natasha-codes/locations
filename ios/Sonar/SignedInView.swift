@@ -11,16 +11,15 @@ struct SignedInView: View {
     @EnvironmentObject var authSession: MSAOpenIDAuthSession
 
     var body: some View {
-        Text("Signed in!")
-            .onAppear() {
-                self.authSession.doWithAuth { result in
-                    switch result {
-                    case let .failure(err):
-                        print("\(err)")
-                    case let .success(token):
-                        print("token: \(token)")
-                    }
+        Button("Get a token") {
+            self.authSession.doWithAuth { result in
+                switch result {
+                case let .failure(err):
+                    print("signed in view action error: \(err)")
+                case let .success(token):
+                    print("signed in view action token: \(token)")
                 }
             }
+        }
     }
 }

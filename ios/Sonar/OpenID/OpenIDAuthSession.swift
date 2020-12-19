@@ -57,6 +57,11 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
     }
 
     func doSignIn(presenter: UIViewController, completion: @escaping (Result<Void>) -> Void) {
+        guard !self.hasAuthenticated, self.authState == nil else {
+            completion(.success(()))
+            return
+        }
+
         // 1. Get the OIDC "discovery document", which is a JSON with metadata about
         //    various OIDC-related endpoints and parameters for the given authority.
         OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { configuration, error in
@@ -108,7 +113,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
 
     func doSignOut(presenter: UIViewController, completion: @escaping (Result<Void>) -> Void) {
         guard self.hasAuthenticated, let authState = self.authState else {
-            completion(.failure(.notAuthenticated))
+            completion(.success(()))
             return
         }
 
@@ -124,19 +129,42 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
                                                      postLogoutRedirectURL: Authority.redirectUri,
                                                      additionalParameters: nil)
 
-        OIDAuthorizationService.present(endSessionRequest, externalUserAgent: userAgent) { _response, error in
+        let succeed = {
+            self.authState = nil
+            completion(.success(()))
+
+            // Last, since it notifies subscribers
+            self.hasAuthenticated = false
+        }
+
+        // Take a reference to the auth session here to keep it from dealloc-ing
+        self.inProgressOIDAuthSession = OIDAuthorizationService.present(endSessionRequest, externalUserAgent: userAgent) { _response, error in
             if let error = error {
                 if let oidErrorCode = OIDErrorCode(rawValue: (error as NSError).code) {
-                    completion(.failure(.openid(code: oidErrorCode)))
+                    // It seems that (at least the MSA) logout flow does not automatically
+                    // redirect into the app and therefore requires a manual closing of the
+                    // webview, which reads as a user cancel.
+                    //
+                    // Note that if the user manually cancels during some interactive stage
+                    // of the `/logout` page, we will consider them signed out although there
+                    // may be cached credentials in the webview.
+                    //
+                    // Also note that I think there's a bug in the iOS simulator where clearing
+                    // the user's credentials via `/logout` (again, at least for MSA) just doesn't
+                    // work. I suspect it's due to a bug in how the simulator shares cookies/state
+                    // with the Safari instance, since clearing Safari cookies (which should clear
+                    // cookies in the Safari-based secure webview) should definitely clear the
+                    // cedentials and that doesn't work either. Try it on device, should work.
+                    if case .userCanceledAuthorizationFlow = oidErrorCode {
+                        succeed()
+                    } else {
+                        completion(.failure(.openid(code: oidErrorCode)))
+                    }
                 } else {
                     completion(.failure(.unknown))
                 }
             } else {
-                self.authState = nil
-                completion(.success(()))
-
-                // Last, since it notifies subscribers
-                self.hasAuthenticated = false
+                succeed()
             }
         }
     }

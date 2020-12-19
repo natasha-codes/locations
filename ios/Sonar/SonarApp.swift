@@ -14,10 +14,20 @@ struct SonarApp: App {
     var body: some Scene {
         WindowGroup {
             if self.authSession.hasAuthenticated {
-                SignedInView()
-                    .environmentObject(self.authSession)
+                TabView {
+                    SignedInView()
+                        .environmentObject(self.authSession)
+                        .tabItem {
+                            Text("Main tab")
+                        }
+                    MSAOpenIDSignOutView()
+                        .environmentObject(self.authSession)
+                        .tabItem {
+                            Text("Sign out tab")
+                        }
+                }
             } else {
-                OpenIDSignInView<MSAOpenIDAuthority>()
+                MSAOpenIDSignInView()
                     .environmentObject(self.authSession)
             }
         }
