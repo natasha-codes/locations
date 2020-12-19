@@ -19,6 +19,8 @@
 		D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */; };
 		D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB08258D528E00A1BC7A /* SignedInView.swift */; };
 		D9B8FB0F258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB0E258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift */; };
+		D9B8FB19258DF9C000A1BC7A /* OpenIDSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */; };
+		D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +36,8 @@
 		D9B8FB05258D504A00A1BC7A /* ResultExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultExtensions.swift; sourceTree = "<group>"; };
 		D9B8FB08258D528E00A1BC7A /* SignedInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedInView.swift; sourceTree = "<group>"; };
 		D9B8FB0E258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenIDAuthority+MSA.swift"; sourceTree = "<group>"; };
+		D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignInView.swift; sourceTree = "<group>"; };
+		D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignOutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +99,8 @@
 				D9B8FAF4258D367500A1BC7A /* OpenIDAuthSession.swift */,
 				D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */,
 				D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */,
+				D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */,
+				D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */,
 			);
 			path = OpenID;
 			sourceTree = "<group>";
@@ -179,8 +185,10 @@
 				D9B8FB0F258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift in Sources */,
 				D9B8FAF5258D367500A1BC7A /* OpenIDAuthSession.swift in Sources */,
 				D9B8FAED258C4BE500A1BC7A /* OpenIDAuthority.swift in Sources */,
+				D9B8FB19258DF9C000A1BC7A /* OpenIDSignInView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
 				D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */,
+				D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */,
 				D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */,
 				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
 			);

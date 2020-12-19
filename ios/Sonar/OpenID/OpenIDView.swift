@@ -10,27 +10,22 @@ import SwiftUI
 import UIKit
 
 /**
- A `View` that wraps an OpenID Connect (OIDC) flow to authenticate a user, via the
- authority described by`Authority`.
-
- OIDC flow details: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow
+ A `View` designed to interface with the `OpenIDAuthSession` by wrapping a `UIViewController`
+ that the `OpenIDAuthSession` can use to perform webview-based actions (e.g., sign in/out).
  */
 struct OpenIDView<Authority: OpenIDAuthority>: UIViewControllerRepresentable {
     typealias UIViewControllerType = OpenIDViewController
 
-    @EnvironmentObject var authSession: OpenIDAuthSession<Authority>
+    private let buttonPrompt: String
+    private let onButtonPress: (UIViewController) -> Void
+
+    init(buttonPrompt: String, onButtonPress: @escaping (UIViewController) -> Void) {
+        self.buttonPrompt = buttonPrompt
+        self.onButtonPress = onButtonPress
+    }
 
     func makeUIViewController(context _: Context) -> OpenIDViewController {
-        OpenIDViewController(authorityFriendlyName: Authority.friendlyName, onSignInPressed: { viewController in
-            self.authSession.doSignIn(presenter: viewController) { result in
-                switch result {
-                case .success:
-                    print("Sign in successful!")
-                case let .failure(error):
-                    print("Sign in failed: \(error)")
-                }
-            }
-        })
+        OpenIDViewController(buttonPrompt: self.buttonPrompt, onButtonPress: self.onButtonPress)
     }
 
     func updateUIViewController(_: OpenIDViewController, context _: Context) {}
@@ -39,24 +34,22 @@ struct OpenIDView<Authority: OpenIDAuthority>: UIViewControllerRepresentable {
 class OpenIDViewController: UIViewController {
     @IBOutlet var signInButton: UIButton!
 
-    private var authorityFriendlyName: String!
-    private var onSignInPressed: ((OpenIDViewController) -> Void)!
+    private var buttonPrompt: String!
+    private var onButtonPress: ((OpenIDViewController) -> Void)!
 
-    convenience init(authorityFriendlyName: String,
-                     onSignInPressed: @escaping (OpenIDViewController) -> Void)
-    {
+    convenience init(buttonPrompt: String, onButtonPress: @escaping (OpenIDViewController) -> Void) {
         self.init(nibName: "OpenIDView", bundle: nil)
 
-        self.authorityFriendlyName = authorityFriendlyName
-        self.onSignInPressed = onSignInPressed
+        self.buttonPrompt = buttonPrompt
+        self.onButtonPress = onButtonPress
     }
 
     override func viewDidLoad() {
-        self.signInButton.setTitle("Sign in with \(self.authorityFriendlyName!)", for: .normal)
-        self.signInButton.addTarget(self, action: #selector(self.callOnSignInPressed), for: .touchUpInside)
+        self.signInButton.setTitle(self.buttonPrompt, for: .normal)
+        self.signInButton.addTarget(self, action: #selector(self.callOnButtonPress), for: .touchUpInside)
     }
 
-    @objc private func callOnSignInPressed() {
-        self.onSignInPressed?(self)
+    @objc private func callOnButtonPress() {
+        self.onButtonPress?(self)
     }
 }

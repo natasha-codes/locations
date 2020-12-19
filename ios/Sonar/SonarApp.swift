@@ -17,7 +17,7 @@ struct SonarApp: App {
                 SignedInView()
                     .environmentObject(self.authSession)
             } else {
-                OpenIDView<MSAOpenIDAuthority>()
+                OpenIDSignInView<MSAOpenIDAuthority>()
                     .environmentObject(self.authSession)
             }
         }
