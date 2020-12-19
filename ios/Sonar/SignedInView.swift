@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignedInView: View {
-    @EnvironmentObject var authSession: MSAOpenIDAuthSession
+    @EnvironmentObject var authSession: OpenIDAuthSession
 
     var body: some View {
         Button("Get a token") {

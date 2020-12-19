@@ -7,11 +7,17 @@
 
 import SwiftUI
 
-struct OpenIDSignInView<Authority: OpenIDAuthority>: View {
-    @EnvironmentObject var authSession: OpenIDAuthSession<Authority>
+struct OpenIDSignInView: View {
+    let authority: OpenIDAuthority
+
+    @EnvironmentObject var authSession: OpenIDAuthSession
+
+    init(authority: OpenIDAuthority) {
+        self.authority = authority
+    }
 
     var body: some View {
-        OpenIDView<Authority>(buttonPrompt: "Sign in with \(Authority.friendlyName)") { viewController in
+        OpenIDView(buttonPrompt: "Sign in with \(self.authority.friendlyName)") { viewController in
             self.authSession.doSignIn(presenter: viewController) { result in
                 switch result {
                 case .success:
@@ -26,6 +32,6 @@ struct OpenIDSignInView<Authority: OpenIDAuthority>: View {
 
 struct OpenIDSignInView_Previews: PreviewProvider {
     static var previews: some View {
-        OpenIDSignInView<MSAOpenIDAuthority>()
+        OpenIDSignInView(authority: MSAOpenIDAuthority())
     }
 }

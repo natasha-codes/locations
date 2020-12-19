@@ -7,11 +7,17 @@
 
 import SwiftUI
 
-struct OpenIDSignOutView<Authority: OpenIDAuthority>: View {
-    @EnvironmentObject var authSession: OpenIDAuthSession<Authority>
+struct OpenIDSignOutView: View {
+    let authority: OpenIDAuthority
+
+    @EnvironmentObject var authSession: OpenIDAuthSession
+
+    init(authority: OpenIDAuthority) {
+        self.authority = authority
+    }
 
     var body: some View {
-        OpenIDView<Authority>(buttonPrompt: "Sign out from \(Authority.friendlyName)") { viewController in
+        OpenIDView(buttonPrompt: "Sign out from \(self.authority.friendlyName)") { viewController in
             self.authSession.doSignOut(presenter: viewController) { result in
                 switch result {
                 case .success:
@@ -26,6 +32,6 @@ struct OpenIDSignOutView<Authority: OpenIDAuthority>: View {
 
 struct OpenIDSignOutView_Previews: PreviewProvider {
     static var previews: some View {
-        OpenIDSignOutView<MSAOpenIDAuthority>()
+        OpenIDSignOutView(authority: MSAOpenIDAuthority())
     }
 }

@@ -13,7 +13,7 @@ import UIKit
  A `View` designed to interface with the `OpenIDAuthSession` by wrapping a `UIViewController`
  that the `OpenIDAuthSession` can use to perform webview-based actions (e.g., sign in/out).
  */
-struct OpenIDView<Authority: OpenIDAuthority>: UIViewControllerRepresentable {
+struct OpenIDView: UIViewControllerRepresentable {
     typealias UIViewControllerType = OpenIDViewController
 
     private let buttonPrompt: String

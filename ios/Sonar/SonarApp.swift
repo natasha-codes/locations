@@ -9,7 +9,13 @@ import SwiftUI
 
 @main
 struct SonarApp: App {
-    @ObservedObject var authSession = MSAOpenIDAuthSession()
+    let authAuthority = MSAOpenIDAuthority()
+
+    @ObservedObject var authSession: OpenIDAuthSession
+
+    init() {
+        self.authSession = OpenIDAuthSession(authority: self.authAuthority)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -20,14 +26,14 @@ struct SonarApp: App {
                         .tabItem {
                             Text("Main tab")
                         }
-                    MSAOpenIDSignOutView()
+                    OpenIDSignOutView(authority: self.authAuthority)
                         .environmentObject(self.authSession)
                         .tabItem {
                             Text("Sign out tab")
                         }
                 }
             } else {
-                MSAOpenIDSignInView()
+                OpenIDSignInView(authority: self.authAuthority)
                     .environmentObject(self.authSession)
             }
         }

@@ -21,8 +21,9 @@
 		D9B8FB0F258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB0E258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift */; };
 		D9B8FB19258DF9C000A1BC7A /* OpenIDSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */; };
 		D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */; };
-		D9B8FB27258E01A600A1BC7A /* OpenIDView+MSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB26258E01A600A1BC7A /* OpenIDView+MSA.swift */; };
 		D9B8FB2C258E8C0900A1BC7A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */; };
+		D9B8FB32258EAC8B00A1BC7A /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB31258EAC8B00A1BC7A /* APIClient.swift */; };
+		D9B8FB37258EAD1500A1BC7A /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D9B8FB36258EAD1500A1BC7A /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,7 +41,7 @@
 		D9B8FB0E258DF48F00A1BC7A /* OpenIDAuthority+MSA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenIDAuthority+MSA.swift"; sourceTree = "<group>"; };
 		D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignInView.swift; sourceTree = "<group>"; };
 		D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignOutView.swift; sourceTree = "<group>"; };
-		D9B8FB26258E01A600A1BC7A /* OpenIDView+MSA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenIDView+MSA.swift"; sourceTree = "<group>"; };
+		D9B8FB31258EAC8B00A1BC7A /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +50,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9106B2B25898B11004C257F /* AppAuth in Frameworks */,
+				D9B8FB37258EAD1500A1BC7A /* Alamofire in Frameworks */,
 				D9106B2D25898B11004C257F /* AppAuthCore in Frameworks */,
 				D9B8FB2C258E8C0900A1BC7A /* KeychainAccess in Frameworks */,
 			);
@@ -76,6 +78,7 @@
 		D92924BB2584A92E00DDCE97 /* Sonar */ = {
 			isa = PBXGroup;
 			children = (
+				D9B8FB30258EAC7C00A1BC7A /* API */,
 				D9B8FAEF258C4C4300A1BC7A /* OpenID */,
 				D92924C52584A92F00DDCE97 /* Info.plist */,
 				D92924BC2584A92E00DDCE97 /* SonarApp.swift */,
@@ -104,10 +107,17 @@
 				D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */,
 				D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */,
 				D9B8FAFC258D466A00A1BC7A /* OpenIDView.swift */,
-				D9B8FB26258E01A600A1BC7A /* OpenIDView+MSA.swift */,
 				D9B8FB02258D4E3300A1BC7A /* OpenIDView.xib */,
 			);
 			path = OpenID;
+			sourceTree = "<group>";
+		};
+		D9B8FB30258EAC7C00A1BC7A /* API */ = {
+			isa = PBXGroup;
+			children = (
+				D9B8FB31258EAC8B00A1BC7A /* APIClient.swift */,
+			);
+			path = API;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -130,6 +140,7 @@
 				D9106B2A25898B11004C257F /* AppAuth */,
 				D9106B2C25898B11004C257F /* AppAuthCore */,
 				D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */,
+				D9B8FB36258EAD1500A1BC7A /* Alamofire */,
 			);
 			productName = Sonar;
 			productReference = D92924B92584A92E00DDCE97 /* Sonar.app */;
@@ -161,6 +172,7 @@
 			packageReferences = (
 				D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
 				D9B8FB2A258E8C0900A1BC7A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				D9B8FB35258EAD1500A1BC7A /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = D92924BA2584A92E00DDCE97 /* Products */;
 			projectDirPath = "";
@@ -194,11 +206,11 @@
 				D9B8FAED258C4BE500A1BC7A /* OpenIDAuthority.swift in Sources */,
 				D9B8FB19258DF9C000A1BC7A /* OpenIDSignInView.swift in Sources */,
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
+				D9B8FB32258EAC8B00A1BC7A /* APIClient.swift in Sources */,
 				D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */,
 				D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */,
 				D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */,
 				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
-				D9B8FB27258E01A600A1BC7A /* OpenIDView+MSA.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,6 +417,14 @@
 				version = 4.2.1;
 			};
 		};
+		D9B8FB35258EAD1500A1BC7A /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire/";
+			requirement = {
+				kind = exactVersion;
+				version = 5.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -422,6 +442,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D9B8FB2A258E8C0900A1BC7A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
+		};
+		D9B8FB36258EAD1500A1BC7A /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9B8FB35258EAD1500A1BC7A /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

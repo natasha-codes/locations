@@ -16,7 +16,9 @@ import SwiftUI
  See an overview of the OIDC flow at: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow.
  Relevant pieces of code are listed in ordered comments below.
  */
-class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
+class OpenIDAuthSession: ObservableObject {
+    let authority: OpenIDAuthority
+
     @Published var hasAuthenticated: Bool = false
 
     private var lastRetrievedIDToken: Token? = nil
@@ -41,7 +43,9 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
         }
     }
 
-    init() {
+    init(authority: OpenIDAuthority) {
+        self.authority = authority
+
         do {
             guard let serializedAuthState = try self.keychain.getData(self.kAuthStateDataKey) else {
                 return
@@ -98,7 +102,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
 
         // 1. Get the OIDC "discovery document", which is a JSON with metadata about
         //    various OIDC-related endpoints and parameters for the given authority.
-        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { config, error in
+        OIDAuthorizationService.discoverConfiguration(forIssuer: self.authority.issuer) { config, error in
             guard let config = config else {
                 if let error = error, let oidErrorCode = OIDErrorCode(rawValue: (error as NSError).code) {
                     completion(.failure(.openid(code: oidErrorCode)))
@@ -116,9 +120,9 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
             //    that we eventually want (since it *authenticates* a user, vs. an `access_token`
             //    which *authorizes* us to call the authority's APIs on behalf of the user).
             let authRequest = OIDAuthorizationRequest(configuration: config,
-                                                      clientId: Authority.clientId,
+                                                      clientId: self.authority.clientId,
                                                       scopes: ["openid"],
-                                                      redirectURL: Authority.redirectUri,
+                                                      redirectURL: self.authority.redirectUri,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
 
@@ -160,7 +164,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
         //    navigate to the authority's `/logout` endpoint, which will log them out.
         let endSessionRequest = OIDEndSessionRequest(configuration: authState.config,
                                                      idTokenHint: self.lastRetrievedIDToken ?? "", // Does "" produce a signout error?
-                                                     postLogoutRedirectURL: Authority.redirectUri,
+                                                     postLogoutRedirectURL: self.authority.redirectUri,
                                                      additionalParameters: nil)
 
         let succeed = {
@@ -216,7 +220,7 @@ extension OpenIDAuthSession {
         case unknown
     }
 
-    class AuthState: NSObject, NSSecureCoding {
+    @objc(OpenIDAuthSessionAuthState) class AuthState: NSObject, NSSecureCoding {
         let state: OIDAuthState
         let config: OIDServiceConfiguration
 
