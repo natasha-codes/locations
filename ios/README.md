@@ -8,5 +8,4 @@ opening `Sonar.xcodeproj`.
 ## TODO
 
 - Keychain persistence of AppAuth state
-- Signing out
 
