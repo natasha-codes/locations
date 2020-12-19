@@ -1,2 +1,2 @@
---disable stripunusedargs
+--disable unusedArguments,redundantNilInit
 --self insert

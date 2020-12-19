@@ -22,6 +22,7 @@
 		D9B8FB19258DF9C000A1BC7A /* OpenIDSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */; };
 		D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */; };
 		D9B8FB27258E01A600A1BC7A /* OpenIDView+MSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB26258E01A600A1BC7A /* OpenIDView+MSA.swift */; };
+		D9B8FB2C258E8C0900A1BC7A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 			files = (
 				D9106B2B25898B11004C257F /* AppAuth in Frameworks */,
 				D9106B2D25898B11004C257F /* AppAuthCore in Frameworks */,
+				D9B8FB2C258E8C0900A1BC7A /* KeychainAccess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +129,7 @@
 			packageProductDependencies = (
 				D9106B2A25898B11004C257F /* AppAuth */,
 				D9106B2C25898B11004C257F /* AppAuthCore */,
+				D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */,
 			);
 			productName = Sonar;
 			productReference = D92924B92584A92E00DDCE97 /* Sonar.app */;
@@ -157,6 +160,7 @@
 			mainGroup = D92924B02584A92E00DDCE97;
 			packageReferences = (
 				D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
+				D9B8FB2A258E8C0900A1BC7A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			productRefGroup = D92924BA2584A92E00DDCE97 /* Products */;
 			projectDirPath = "";
@@ -389,8 +393,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/openid/AppAuth-iOS";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.4.0;
+				kind = exactVersion;
+				version = 1.4.0;
+			};
+		};
+		D9B8FB2A258E8C0900A1BC7A /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = exactVersion;
+				version = 4.2.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -405,6 +417,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D9106B2925898B11004C257F /* XCRemoteSwiftPackageReference "AppAuth-iOS" */;
 			productName = AppAuthCore;
+		};
+		D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9B8FB2A258E8C0900A1BC7A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

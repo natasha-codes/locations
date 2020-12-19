@@ -6,8 +6,7 @@
 //
 
 import AppAuth
-import Combine
-import Foundation
+import KeychainAccess
 import SwiftUI
 
 /**
@@ -18,15 +17,50 @@ import SwiftUI
  Relevant pieces of code are listed in ordered comments below.
  */
 class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
-    typealias Token = String
-    typealias AuthState = (state: OIDAuthState, configuration: OIDServiceConfiguration)
-    typealias Result<T> = Swift.Result<T, AuthError>
-
     @Published var hasAuthenticated: Bool = false
 
-    private var authState: AuthState?
-    private var lastRetrievedIDToken: Token?
-    private var inProgressOIDAuthSession: OIDExternalUserAgentSession?
+    private var lastRetrievedIDToken: Token? = nil
+    private var inProgressOIDAuthSession: OIDExternalUserAgentSession? = nil
+
+    private let keychain = Keychain(service: "com.natasha-codes.sonar")
+    private let kAuthStateDataKey = "OpenIDAuthSession.authState"
+
+    private var authState: AuthState? = nil {
+        didSet {
+            // Auth state in memory should match Keychain
+            do {
+                if self.authState == nil {
+                    try self.keychain.remove(self.kAuthStateDataKey)
+                } else if let newAuthState = self.authState {
+                    let serializedAuthState = try NSKeyedArchiver.archivedData(withRootObject: newAuthState, requiringSecureCoding: true)
+                    try self.keychain.set(serializedAuthState, key: self.kAuthStateDataKey)
+                }
+            } catch let e {
+                print("Failed to serialize and persist auth state: \(e)")
+            }
+        }
+    }
+
+    init() {
+        do {
+            guard let serializedAuthState = try self.keychain.getData(self.kAuthStateDataKey) else {
+                return
+            }
+
+            // `NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(:)` is deprecated online, in favor
+            // of `NSKeyedUnarchiver.unarchivedObject(ofClass:from:)`. However, per this issue:
+            // https://github.com/openid/AppAuth-iOS/issues/479 there appears to be a bug in decoding
+            // some AppAuth types using this method. Until that's resolved, decode as below.
+            if let deserializedObject = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(serializedAuthState),
+               let authState = deserializedObject as? AuthState
+            {
+                self.authState = authState
+                self.hasAuthenticated = true
+            }
+        } catch let e {
+            print("Failed to deserialize persisted auth state: \(e)")
+        }
+    }
 
     func setAuthState(oidAuthState authState: AuthState) {
         self.authState = authState
@@ -64,8 +98,8 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
 
         // 1. Get the OIDC "discovery document", which is a JSON with metadata about
         //    various OIDC-related endpoints and parameters for the given authority.
-        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { configuration, error in
-            guard let configuration = configuration else {
+        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { config, error in
+            guard let config = config else {
                 if let error = error, let oidErrorCode = OIDErrorCode(rawValue: (error as NSError).code) {
                     completion(.failure(.openid(code: oidErrorCode)))
                 } else {
@@ -81,7 +115,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
             //    scope, which means the code we get will later be able to get the `id_token`
             //    that we eventually want (since it *authenticates* a user, vs. an `access_token`
             //    which *authorizes* us to call the authority's APIs on behalf of the user).
-            let authRequest = OIDAuthorizationRequest(configuration: configuration,
+            let authRequest = OIDAuthorizationRequest(configuration: config,
                                                       clientId: Authority.clientId,
                                                       scopes: ["openid"],
                                                       redirectURL: Authority.redirectUri,
@@ -95,7 +129,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
                     // 3. Store the auth state for later. At this point, the user has authenticated
                     //    with the authority, and using the information in the auth state we should
                     //    be able to, at any point, get a token. (We will do this later, on-demand.)
-                    self.authState = (state, configuration)
+                    self.authState = AuthState(state: state, config: config)
                     completion(.success(()))
 
                     // Last, since it notifies subscribers
@@ -124,7 +158,7 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
 
         // 5. Use the information stored in the auth state fetched during sign-in to
         //    navigate to the authority's `/logout` endpoint, which will log them out.
-        let endSessionRequest = OIDEndSessionRequest(configuration: authState.configuration,
+        let endSessionRequest = OIDEndSessionRequest(configuration: authState.config,
                                                      idTokenHint: self.lastRetrievedIDToken ?? "", // Does "" produce a signout error?
                                                      postLogoutRedirectURL: Authority.redirectUri,
                                                      additionalParameters: nil)
@@ -170,8 +204,43 @@ class OpenIDAuthSession<Authority: OpenIDAuthority>: ObservableObject {
     }
 }
 
-enum AuthError: Error {
-    case notAuthenticated
-    case openid(code: OIDErrorCode)
-    case unknown
+// MARK: Nested types
+
+extension OpenIDAuthSession {
+    typealias Token = String
+    typealias Result<T> = Swift.Result<T, Error>
+
+    enum Error: Swift.Error {
+        case notAuthenticated
+        case openid(code: OIDErrorCode)
+        case unknown
+    }
+
+    class AuthState: NSObject, NSSecureCoding {
+        let state: OIDAuthState
+        let config: OIDServiceConfiguration
+
+        init(state: OIDAuthState, config: OIDServiceConfiguration) {
+            self.state = state
+            self.config = config
+        }
+
+        static var supportsSecureCoding: Bool { true }
+
+        func encode(with coder: NSCoder) {
+            coder.encode(self.state, forKey: "state")
+            coder.encode(self.config, forKey: "config")
+        }
+
+        required init?(coder: NSCoder) {
+            guard let state = coder.decodeObject(of: OIDAuthState.self, forKey: "state"),
+                  let config = coder.decodeObject(of: OIDServiceConfiguration.self, forKey: "config")
+            else {
+                return nil
+            }
+
+            self.state = state
+            self.config = config
+        }
+    }
 }
