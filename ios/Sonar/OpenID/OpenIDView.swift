@@ -15,14 +15,16 @@ import UIKit
 
  OIDC flow details: https://rograce.github.io/openid-connect-documentation/explore_auth_code_flow
  */
-final class OpenIDView<Authority: OpenIDAuthority> {
-    private var currentAuthSession: OIDExternalUserAgentSession?
+struct OpenIDView<Authority: OpenIDAuthority>: View {
+    // Dumb, but necessary so we can keep `OpenIDView` a struct and
+    // be able to assign to a property in a closure without making
+    // all the funcs in the chain be `mutating`. Need to keep this
+    // a struct for SwiftUI reasons.
+    private class OIDAuthSessionWrapper { var wrapped: OIDExternalUserAgentSession? }
 
-    @Binding var auth: Auth?
+    @EnvironmentObject var authSession: AuthSession
 
-    init(auth: Binding<Auth?>?) {
-        self._auth = auth ?? Binding.constant(nil)
-    }
+    private let inProgressOIDAuthSession = OIDAuthSessionWrapper()
 
     fileprivate func initiateAuth(presenter: UIViewController) {
         self.getAuthState(presenter: presenter) { result in
@@ -35,18 +37,13 @@ final class OpenIDView<Authority: OpenIDAuthority> {
             case let .failure(err):
                 print(err)
             case let .success(authState):
-                self.auth = Auth(authState: authState)
+                self.authSession.setAuthState(oidAuthState: authState)
             }
         }
     }
 
     private func getAuthState(presenter: UIViewController, completion: @escaping (Result<OIDAuthState, String>) -> Void) {
-        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { [weak self] configuration, error in
-            guard let self = self else {
-                completion(.failure("Dealloced discovering configuration"))
-                return
-            }
-
+        OIDAuthorizationService.discoverConfiguration(forIssuer: Authority.issuer) { configuration, error in
             guard let configuration = configuration else {
                 completion(.failure("Error retrieving discovery document: \(error?.localizedDescription ?? "Unknown error")"))
                 return
@@ -60,8 +57,8 @@ final class OpenIDView<Authority: OpenIDAuthority> {
                                                       additionalParameters: nil)
 
             // Take a reference to the auth session here to keep it from dealloc-ing
-            self.currentAuthSession = OIDAuthState.authState(byPresenting: authRequest,
-                                                             presenting: presenter) { state, error in
+            self.inProgressOIDAuthSession.wrapped = OIDAuthState.authState(byPresenting: authRequest,
+                                                                   presenting: presenter) { state, error in
                 if let state = state {
                     completion(.success(state))
                 } else {
@@ -76,13 +73,7 @@ extension OpenIDView: UIViewControllerRepresentable {
     typealias UIViewControllerType = OpenIDViewController
 
     func makeUIViewController(context _: Context) -> OpenIDViewController {
-        OpenIDViewController(authorityFriendlyName: Authority.friendlyName, onSignInPressed: { [weak self] presenter in
-            guard let self = self else {
-                return
-            }
-
-            self.initiateAuth(presenter: presenter)
-        })
+        OpenIDViewController(authorityFriendlyName: Authority.friendlyName, onSignInPressed: self.initiateAuth(presenter:))
     }
 
     func updateUIViewController(_: OpenIDViewController, context _: Context) {}
@@ -95,7 +86,8 @@ class OpenIDViewController: UIViewController {
     private var onSignInPressed: ((OpenIDViewController) -> Void)!
 
     convenience init(authorityFriendlyName: String,
-                     onSignInPressed: @escaping (OpenIDViewController) -> Void) {
+                     onSignInPressed: @escaping (OpenIDViewController) -> Void)
+    {
         self.init(nibName: "OpenIDView", bundle: nil)
 
         self.authorityFriendlyName = authorityFriendlyName

@@ -8,19 +8,15 @@
 import SwiftUI
 
 struct AuthView: View {
-    @ObservedObject var authViewModel = AuthViewModel()
+    @ObservedObject var authSession = AuthSession()
 
     var body: some View {
-        if let auth = self.authViewModel.auth {
-            SignedInView(auth: auth)
+        if self.authSession.hasAuthenticated {
+            SignedInView()
+                .environmentObject(self.authSession)
         } else {
-            OpenIDView<MSAOpenIDAuthority>(auth: $authViewModel.auth)
+            OpenIDView<MSAOpenIDAuthority>()
+                .environmentObject(self.authSession)
         }
-    }
-}
-
-struct AuthView_Previews: PreviewProvider {
-    static var previews: some View {
-        AuthView()
     }
 }
