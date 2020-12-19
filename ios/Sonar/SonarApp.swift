@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct SonarApp: App {
+    @ObservedObject var authSession = MSAOpenIDAuthSession()
+
     var body: some Scene {
         WindowGroup {
-            AuthView()
+            if self.authSession.hasAuthenticated {
+                SignedInView()
+                    .environmentObject(self.authSession)
+            } else {
+                OpenIDView<MSAOpenIDAuthority>()
+                    .environmentObject(self.authSession)
+            }
         }
     }
 }

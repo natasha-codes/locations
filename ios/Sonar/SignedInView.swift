@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignedInView: View {
-    @EnvironmentObject var authSession: AuthSession
+    @EnvironmentObject var authSession: MSAOpenIDAuthSession
 
     var body: some View {
         Text("Signed in!")
