@@ -2,18 +2,21 @@
 extern crate rocket;
 
 use rocket::routes;
+use rocket_contrib::json::Json;
 
 mod location;
 mod openid;
 mod user;
 
 use location::{Coordinate, Location};
-use rocket_contrib::json::Json;
+use openid::validator::Validator;
 use user::User;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
-    rocket::ignite().mount("/", routes![get_a_location])
+    rocket::ignite()
+        .manage(Validator::new_msa())
+        .mount("/", routes![get_a_location])
 }
 
 #[post("/hello")]

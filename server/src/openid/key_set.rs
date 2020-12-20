@@ -8,7 +8,7 @@ use crate::openid::authority::{Authority, Claims};
 pub trait KeySetFetcher {
     type Error;
 
-    async fn fetch<C: Claims>(&mut self, authority: &Authority<C>) -> Result<KeySet, Self::Error>;
+    async fn fetch<C: Claims>(&self, authority: &Authority<C>) -> Result<KeySet, Self::Error>;
 }
 
 pub struct NetworkKeySetFetcher {}
@@ -23,7 +23,7 @@ impl NetworkKeySetFetcher {
 impl KeySetFetcher for NetworkKeySetFetcher {
     type Error = reqwest::Error;
 
-    async fn fetch<C: Claims>(&mut self, authority: &Authority<C>) -> Result<KeySet, Self::Error> {
+    async fn fetch<C: Claims>(&self, authority: &Authority<C>) -> Result<KeySet, Self::Error> {
         // Need the `.compat()` wrappers around futures from `reqwest`, since
         // it uses Tokio 0.2 and we will be running on Tokio 0.3.
 

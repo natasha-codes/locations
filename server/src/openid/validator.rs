@@ -1,9 +1,20 @@
 use std::time::{Duration, Instant};
 
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
+use tokio::sync::{Mutex, MutexGuard};
 
-use crate::openid::authority::{Authority, Claims};
-use crate::openid::key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher};
+use crate::openid::{
+    authority::{Authority, Claims, MSAClaims},
+    key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher},
+};
+
+pub type MSAValidator = Validator<MSAClaims, NetworkKeySetFetcher>;
+
+impl MSAValidator {
+    pub fn new_msa() -> MSAValidator {
+        Validator::new(Authority::MSA)
+    }
+}
 
 pub struct Validator<C: Claims, F: KeySetFetcher> {
     /// The OpenID authority to use to validate.
@@ -12,10 +23,15 @@ pub struct Validator<C: Claims, F: KeySetFetcher> {
     fetcher: F,
     /// The minimum interval between attempted key set refreshes.
     refresh_interval: Duration,
-    /// The currently-held set of keys from the authority.
-    key_set: KeySet,
-    /// When the key set was last updated.
-    key_set_last_updated: Instant,
+    /// A cached key set from the authority.
+    key_set_cache: Mutex<KeySetCache>,
+}
+
+struct KeySetCache {
+    /// The currently-cached keys.
+    keys: KeySet,
+    /// When the cache was last updated.
+    last_updated: Instant,
 }
 
 impl<C: Claims> Validator<C, NetworkKeySetFetcher> {
@@ -38,15 +54,17 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
             authority,
             fetcher,
             refresh_interval,
-            key_set: KeySet::empty(),
-            key_set_last_updated: Instant::now() - refresh_interval,
+            key_set_cache: Mutex::new(KeySetCache {
+                keys: KeySet::empty(),
+                last_updated: Instant::now() - refresh_interval,
+            }),
         }
     }
 
     /// Returns a boolean indicating if the given JWT validated, using the authority
     /// this validator was initialized with. May perform a keyset cache refresh if
     /// the JWT was signed with a key we don't have locally.
-    pub async fn validate(&mut self, jwt: &str) -> Option<C> {
+    pub async fn validate(&self, jwt: &str) -> Option<C> {
         if let Ok(header) = decode_header(jwt) {
             if let Some(thumbprint) = header.kid {
                 if let Some(key) = self.get_key(&thumbprint).await {
@@ -66,12 +84,14 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
         None
     }
 
-    async fn get_key(&mut self, thumbprint: &str) -> Option<Key> {
-        match self.key_set.key_with_thumbprint(&thumbprint) {
+    async fn get_key(&self, thumbprint: &str) -> Option<Key> {
+        let mut cache = self.key_set_cache.lock().await;
+
+        match cache.keys.key_with_thumbprint(&thumbprint) {
             Some(key) => Some(key),
             None => {
-                if self.try_refresh_key_set().await {
-                    self.key_set.key_with_thumbprint(&thumbprint)
+                if self.try_refresh_key_set(&mut cache).await {
+                    cache.keys.key_with_thumbprint(&thumbprint)
                 } else {
                     None
                 }
@@ -82,17 +102,17 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
     /// Try and refresh the cached key set. Returns a boolean representing if the
     /// cache was refreshed or not. The cache could fail to refresh if a refresh
     /// was attempted recently, or if there was an error performing a refresh.
-    async fn try_refresh_key_set(&mut self) -> bool {
-        if Instant::now().duration_since(self.key_set_last_updated) >= self.refresh_interval {
+    async fn try_refresh_key_set<'a>(&self, cache_guard: &mut MutexGuard<'a, KeySetCache>) -> bool {
+        if Instant::now().duration_since(cache_guard.last_updated) >= self.refresh_interval {
             let maybe_key_set = self.fetcher.fetch(&self.authority).await;
 
             // Regardless of if we succeeded in getting a fresh key set above,
             // set the updated time so we don't try again for another 5m.
-            self.key_set_last_updated = Instant::now();
+            cache_guard.last_updated = Instant::now();
 
             match maybe_key_set {
                 Ok(fresh_key_set) => {
-                    self.key_set = fresh_key_set;
+                    cache_guard.keys = fresh_key_set;
                     true
                 }
                 Err(_) => false,
@@ -114,7 +134,7 @@ mod test {
     /// tests that the validator will refresh its keyset for an unrecognized
     /// signing key.
     async fn test_fresh_validator_refreshes_cache_and_validates() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -138,7 +158,7 @@ mod test {
     /// validation fails, and that a validation after a sufficient delay
     /// succeeds.
     async fn test_validation_fails_if_refresh_doesnt_return_key() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new_with_multiple(
                 KeySet::empty(),
@@ -173,7 +193,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an aud not matching ours is rejected.
     async fn test_validation_rejects_mismatched_aud() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -187,7 +207,7 @@ mod test {
     #[tokio::test]
     /// Tests that an expired JWT (via `exp`) is rejected.
     async fn test_validation_rejects_expired() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -203,7 +223,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an invalid (manually broken) signature is rejected.
     async fn test_validation_rejects_invalid_signature() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -233,7 +253,7 @@ mod test {
     #[tokio::test]
     /// Tests that a malformed JWT is rejected.
     async fn test_validation_rejects_malformed_jwt() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -308,7 +328,7 @@ mod test {
         pub struct TestKeySetFetcher {
             first: KeySet,
             rest: KeySet,
-            fetches: usize,
+            fetches: Mutex<usize>,
         }
 
         impl TestKeySetFetcher {
@@ -320,7 +340,7 @@ mod test {
                 Self {
                     first,
                     rest,
-                    fetches: 0,
+                    fetches: Mutex::new(0),
                 }
             }
         }
@@ -330,12 +350,13 @@ mod test {
             type Error = ();
 
             async fn fetch<C: Claims>(
-                &mut self,
+                &self,
                 _authority: &Authority<C>,
             ) -> Result<KeySet, Self::Error> {
-                self.fetches += 1;
+                let mut fetches = self.fetches.lock().await;
+                *fetches += 1;
 
-                if self.fetches == 1 {
+                if *fetches == 1 {
                     Ok(self.first.clone())
                 } else {
                     Ok(self.rest.clone())

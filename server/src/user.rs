@@ -1,9 +1,11 @@
-use rocket::async_trait;
-use rocket::http::Status;
-use rocket::request::{FromRequest, Outcome, Request};
+use rocket::{
+    async_trait,
+    http::Status,
+    request::{FromRequest, Outcome, Request},
+    State,
+};
 
-use crate::openid::authority::{Authority, Claims};
-use crate::openid::validator::Validator;
+use crate::openid::{authority::Claims, validator::MSAValidator};
 
 pub struct User {
     id: String,
@@ -22,9 +24,17 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
     async fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         match request.headers().get_one("Authorization") {
             Some(auth_header) => {
-                let mut validator = Validator::new(Authority::MSA);
+                let validator_state = try_outcome!(request
+                    .guard::<State<MSAValidator>>()
+                    .await
+                    .map_failure(|_| {
+                        (
+                            Status::InternalServerError,
+                            AuthError::FailedToGetTokenValidator,
+                        )
+                    }));
 
-                if let Some(token_claims) = validator.validate(auth_header).await {
+                if let Some(token_claims) = validator_state.validate(auth_header).await {
                     Outcome::Success(Self {
                         id: token_claims.user_id(),
                     })
@@ -39,6 +49,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
 
 #[derive(Debug)]
 pub enum AuthError {
+    FailedToGetTokenValidator,
     MissingAuthHeader,
     InvalidToken,
 }
