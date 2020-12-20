@@ -9,11 +9,11 @@ import SwiftUI
 
 struct OpenIDSignOutView: View {
     let authority: OpenIDAuthority
+    @ObservedObject var authSession: OpenIDAuthSession
 
-    @EnvironmentObject var authSession: OpenIDAuthSession
-
-    init(authority: OpenIDAuthority) {
+    init(authority: OpenIDAuthority, authSession: OpenIDAuthSession) {
         self.authority = authority
+        self.authSession = authSession
     }
 
     var body: some View {
@@ -27,11 +27,5 @@ struct OpenIDSignOutView: View {
                 }
             }
         }
-    }
-}
-
-struct OpenIDSignOutView_Previews: PreviewProvider {
-    static var previews: some View {
-        OpenIDSignOutView(authority: MSAOpenIDAuthority())
     }
 }
