@@ -1,12 +1,11 @@
 use std::time::{Duration, Instant};
 
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
-use serde::de::DeserializeOwned;
 
-use crate::openid::authority::Authority;
+use crate::openid::authority::{Authority, Claims};
 use crate::openid::key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher};
 
-pub struct Validator<C: DeserializeOwned, F: KeySetFetcher> {
+pub struct Validator<C: Claims, F: KeySetFetcher> {
     /// The OpenID authority to use to validate.
     authority: Authority<C>,
     /// Used for fetching fresh key sets from the authority.
@@ -19,7 +18,7 @@ pub struct Validator<C: DeserializeOwned, F: KeySetFetcher> {
     key_set_last_updated: Instant,
 }
 
-impl<C: DeserializeOwned> Validator<C, NetworkKeySetFetcher> {
+impl<C: Claims> Validator<C, NetworkKeySetFetcher> {
     pub fn new(authority: Authority<C>) -> Self {
         Validator::new_with_config(
             authority,
@@ -29,7 +28,7 @@ impl<C: DeserializeOwned> Validator<C, NetworkKeySetFetcher> {
     }
 }
 
-impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
+impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
     pub fn new_with_config(
         authority: Authority<C>,
         fetcher: F,
@@ -47,7 +46,7 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
     /// Returns a boolean indicating if the given JWT validated, using the authority
     /// this validator was initialized with. May perform a keyset cache refresh if
     /// the JWT was signed with a key we don't have locally.
-    pub async fn validate(&mut self, jwt: &str) -> bool {
+    pub async fn validate(&mut self, jwt: &str) -> Option<C> {
         if let Ok(header) = decode_header(jwt) {
             if let Some(thumbprint) = header.kid {
                 if let Some(key) = self.get_key(&thumbprint).await {
@@ -57,19 +56,14 @@ impl<C: DeserializeOwned, F: KeySetFetcher> Validator<C, F> {
                     let mut validation = Validation::new(Algorithm::from(header.alg));
                     validation.set_audience(&[self.authority.aud()]);
 
-                    let decode_result = decode::<C>(jwt, &decoding_key, &validation);
-
-                    match decode_result {
-                        Ok(ref token_data) => println!("{:?}", token_data.header),
-                        Err(ref err) => println!("{:?}", err),
+                    if let Ok(token_data) = decode::<C>(jwt, &decoding_key, &validation) {
+                        return Some(token_data.claims);
                     }
-
-                    return decode_result.is_ok();
                 }
             }
         }
 
-        false
+        None
     }
 
     async fn get_key(&mut self, thumbprint: &str) -> Option<Key> {
@@ -128,7 +122,14 @@ mod test {
 
         let token = utils::generate_jwt("keyid", "my::aud", 3);
 
-        assert!(validator.validate(&token).await);
+        assert_eq!(
+            validator
+                .validate(&token)
+                .await
+                .expect("Token failed to validate")
+                .user_id(),
+            String::from("user_id")
+        );
     }
 
     #[tokio::test]
@@ -149,17 +150,24 @@ mod test {
         let token = utils::generate_jwt("keyid", "my::aud", 3);
 
         // First validation should fail because fetcher will return an empty keyset.
-        assert!(!validator.validate(&token).await);
+        assert!(validator.validate(&token).await.is_none());
 
         // Second immediate validation should fail because fetcher will decline to
         // refresh the keyset.
-        assert!(!validator.validate(&token).await);
+        assert!(validator.validate(&token).await.is_none());
 
         tokio::time::sleep(Duration::from_millis(1)).await;
 
         // Third validation should succeed because fetcher will provide the keyset
         // with the right key.
-        assert!(validator.validate(&token).await);
+        assert_eq!(
+            validator
+                .validate(&token)
+                .await
+                .expect("Token failed to validate")
+                .user_id(),
+            String::from("user_id")
+        );
     }
 
     #[tokio::test]
@@ -173,7 +181,7 @@ mod test {
 
         let token = utils::generate_jwt("keyid", "not::my::aud", 3);
 
-        assert!(!validator.validate(&token).await);
+        assert!(validator.validate(&token).await.is_none());
     }
 
     #[tokio::test]
@@ -189,7 +197,7 @@ mod test {
 
         tokio::time::sleep(Duration::from_millis(2)).await;
 
-        assert!(!validator.validate(&token).await);
+        assert!(validator.validate(&token).await.is_none());
     }
 
     #[tokio::test]
@@ -203,7 +211,14 @@ mod test {
 
         let mut token = utils::generate_jwt("keyid", "my::aud", 3);
 
-        assert!(validator.validate(&token).await);
+        assert_eq!(
+            validator
+                .validate(&token)
+                .await
+                .expect("Token failed to validate")
+                .user_id(),
+            String::from("user_id")
+        );
 
         // Manually break the signature by swapping the last char
         let last_char = token.pop().expect("Token was empty");
@@ -212,7 +227,7 @@ mod test {
             _ => 'a',
         });
 
-        assert!(!validator.validate(&token).await);
+        assert!(validator.validate(&token).await.is_none());
     }
 
     #[tokio::test]
@@ -224,7 +239,10 @@ mod test {
             Duration::from_secs(0),
         );
 
-        assert!(!validator.validate("not_a_jwt_not_even_close").await);
+        assert!(validator
+            .validate("not_a_jwt_not_even_close")
+            .await
+            .is_none());
     }
 
     mod utils {
@@ -261,8 +279,7 @@ mod test {
                     .duration_since(UNIX_EPOCH)
                     .expect("Time went backwards!")
                     .as_secs(),
-                foo: String::from("foo_val"),
-                bar: String::from("bar_val"),
+                oid: String::from("user_id"),
             };
 
             let encoding_key = EncodingKey::from_rsa_pem(TEST_RSA_PRIV_KEY.as_bytes())
@@ -275,8 +292,13 @@ mod test {
         pub struct TestClaims {
             aud: String,
             exp: u64,
-            foo: String,
-            bar: String,
+            oid: String,
+        }
+
+        impl Claims for TestClaims {
+            fn user_id(self) -> String {
+                self.oid
+            }
         }
 
         /// This test keyset fetcher will return `first` the first time its
@@ -303,13 +325,13 @@ mod test {
             }
         }
 
-        #[async_trait(?Send)]
+        #[async_trait]
         impl KeySetFetcher for TestKeySetFetcher {
             type Error = ();
 
-            async fn fetch<Claims: DeserializeOwned>(
+            async fn fetch<C: Claims>(
                 &mut self,
-                _authority: &Authority<Claims>,
+                _authority: &Authority<C>,
             ) -> Result<KeySet, Self::Error> {
                 self.fetches += 1;
 

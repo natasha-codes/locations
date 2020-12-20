@@ -1,17 +1,14 @@
 use async_trait::async_trait;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::Deserialize;
 use tokio_compat_02::FutureExt;
 
-use crate::openid::authority::Authority;
+use crate::openid::authority::{Authority, Claims};
 
-#[async_trait(?Send)]
+#[async_trait]
 pub trait KeySetFetcher {
     type Error;
 
-    async fn fetch<Claims: DeserializeOwned>(
-        &mut self,
-        authority: &Authority<Claims>,
-    ) -> Result<KeySet, Self::Error>;
+    async fn fetch<C: Claims>(&mut self, authority: &Authority<C>) -> Result<KeySet, Self::Error>;
 }
 
 pub struct NetworkKeySetFetcher {}
@@ -22,14 +19,11 @@ impl NetworkKeySetFetcher {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl KeySetFetcher for NetworkKeySetFetcher {
     type Error = reqwest::Error;
 
-    async fn fetch<Claims: DeserializeOwned>(
-        &mut self,
-        authority: &Authority<Claims>,
-    ) -> Result<KeySet, Self::Error> {
+    async fn fetch<C: Claims>(&mut self, authority: &Authority<C>) -> Result<KeySet, Self::Error> {
         // Need the `.compat()` wrappers around futures from `reqwest`, since
         // it uses Tokio 0.2 and we will be running on Tokio 0.3.
 
@@ -61,11 +55,14 @@ pub struct KeySet {
     keys: Vec<Key>,
 }
 
+unsafe impl Send for KeySet {}
+
 impl KeySet {
     pub fn empty() -> Self {
         Self { keys: vec![] }
     }
 
+    #[cfg(test)]
     pub fn with_keys(keys: Vec<Key>) -> Self {
         Self { keys }
     }

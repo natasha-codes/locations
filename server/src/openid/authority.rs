@@ -6,13 +6,19 @@ use serde::{de::DeserializeOwned, Deserialize};
 const OPENID_DISCOVERY_PATH: &'static str = ".well-known/openid-configuration";
 
 /// An OpenID authority.
-pub struct Authority<Claims: DeserializeOwned> {
+pub struct Authority<C: Claims> {
     domain: &'static str,
     aud: &'static str,
-    claims: PhantomData<Claims>,
+    claims: PhantomData<C>,
 }
 
-impl<Claims: DeserializeOwned> Authority<Claims> {
+/// Claims in an `id_token` from an authority.
+pub trait Claims: DeserializeOwned + Send + Sync {
+    fn user_id(self) -> String;
+}
+
+impl<C: Claims> Authority<C> {
+    #[cfg(test)]
     pub fn new(domain: &'static str, aud: &'static str) -> Self {
         Self {
             domain,
@@ -43,4 +49,12 @@ impl Authority<MSAClaims> {
 }
 
 #[derive(Deserialize)]
-pub struct MSAClaims {}
+pub struct MSAClaims {
+    oid: String,
+}
+
+impl Claims for MSAClaims {
+    fn user_id(self) -> String {
+        self.oid
+    }
+}
