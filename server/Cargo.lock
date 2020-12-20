@@ -1387,7 +1387,6 @@ dependencies = [
 name = "sonar"
 version = "0.0.1"
 dependencies = [
- "async-trait",
  "jsonwebtoken",
  "reqwest",
  "rocket",

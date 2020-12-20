@@ -250,8 +250,8 @@ mod test {
 
         use super::*;
 
-        use async_trait::async_trait;
         use jsonwebtoken::{encode, EncodingKey, Header};
+        use rocket::async_trait;
         use serde::{Deserialize, Serialize};
 
         use crate::openid::key_set::Key;
