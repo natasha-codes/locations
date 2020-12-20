@@ -13,7 +13,7 @@ struct ApiClient {
 
     func perform(action: @escaping (Result<Void, String>) -> Void) {
         self.authSession.doWithAuth { result in
-            action(result.map { _ in }.mapError { "\($0)" })
+            action(result.map { print("token: \($0)") }.mapError { "\($0)" })
         }
     }
 }

@@ -116,7 +116,7 @@ class OpenIDAuthSession: ObservableObject {
             //    which *authorizes* us to call the authority's APIs on behalf of the user).
             let authRequest = OIDAuthorizationRequest(configuration: config,
                                                       clientId: self.authority.clientId,
-                                                      scopes: ["openid"],
+                                                      scopes: [OIDScopeOpenID, OIDScopeProfile],
                                                       redirectURL: self.authority.redirectUri,
                                                       responseType: OIDResponseTypeCode,
                                                       additionalParameters: nil)
