@@ -2,8 +2,18 @@ use std::time::{Duration, Instant};
 
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 
-use crate::openid::authority::{Authority, Claims};
-use crate::openid::key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher};
+use crate::openid::{
+    authority::{Authority, Claims, MSAClaims},
+    key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher},
+};
+
+pub type MSAValidator = Validator<MSAClaims, NetworkKeySetFetcher>;
+
+impl MSAValidator {
+    fn new_msa() -> Self {
+        Validator::new(Authority::MSA)
+    }
+}
 
 pub struct Validator<C: Claims, F: KeySetFetcher> {
     /// The OpenID authority to use to validate.

@@ -1,5 +1,10 @@
 # server
 
+## TODO list
+
+- Make the validator part of Rocket managed state
+- Validate the issuer of the token
+
 ## Developing locally
 
 ```bash
