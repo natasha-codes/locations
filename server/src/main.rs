@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{get, routes};
+use rocket::routes;
 
 mod location;
 mod openid;
@@ -16,9 +16,9 @@ async fn rocket() -> rocket::Rocket {
     rocket::ignite().mount("/", routes![get_a_location])
 }
 
-#[get("/hello", format = "json")]
+#[post("/hello")]
 async fn get_a_location(user: User) -> Json<Location> {
-    println!("{:?}", user.id());
+    println!("User ID: {:?}", user.id());
 
     Json(Location {
         lat: Coordinate {
