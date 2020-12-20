@@ -12,8 +12,6 @@ use user::User;
 
 #[tokio::main]
 async fn main() {
-    // let mut validator = Validator::new(Authority::MSA);
-
     rocket::ignite()
         .mount("/", routes![get_a_location])
         .launch()
