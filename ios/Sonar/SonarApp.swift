@@ -21,8 +21,7 @@ struct SonarApp: App {
         WindowGroup {
             if self.authSession.hasAuthenticated {
                 TabView {
-                    SignedInView()
-                        .environmentObject(self.authSession)
+                    SignedInView(apiClient: ApiClient(authSession: self.authSession))
                         .tabItem {
                             Text("Main tab")
                         }

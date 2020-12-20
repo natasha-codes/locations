@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct SignedInView: View {
-    @EnvironmentObject var authSession: OpenIDAuthSession
+    let apiClient: ApiClient
 
     var body: some View {
         Button("Get a token") {
-            self.authSession.doWithAuth { result in
+            self.apiClient.perform { result in
                 switch result {
-                case let .failure(err):
-                    print("signed in view action error: \(err)")
-                case let .success(token):
-                    print("signed in view action token: \(token)")
+                case .success:
+                    print("API client action success")
+                case .failure(let err):
+                    print("API client action error: \(err)")
                 }
             }
         }

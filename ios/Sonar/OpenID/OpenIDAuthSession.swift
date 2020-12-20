@@ -66,11 +66,6 @@ class OpenIDAuthSession: ObservableObject {
         }
     }
 
-    func setAuthState(oidAuthState authState: AuthState) {
-        self.authState = authState
-        self.hasAuthenticated = true
-    }
-
     func doWithAuth(action: @escaping (_ token: Result<Token>) -> Void) {
         guard self.hasAuthenticated, let authState = self.authState else {
             action(.failure(.notAuthenticated))
@@ -214,10 +209,21 @@ extension OpenIDAuthSession {
     typealias Token = String
     typealias Result<T> = Swift.Result<T, Error>
 
-    enum Error: Swift.Error {
+    enum Error: Swift.Error, CustomStringConvertible {
         case notAuthenticated
         case openid(code: OIDErrorCode)
         case unknown
+
+        var description: String {
+            switch self {
+            case .notAuthenticated:
+                return "Not authenticated"
+            case .openid(let oidErrorCode):
+                return "OpenID error: \(oidErrorCode.rawValue)"
+            case .unknown:
+                return "Unknown"
+            }
+        }
     }
 
     @objc(OpenIDAuthSessionAuthState) class AuthState: NSObject, NSSecureCoding {
