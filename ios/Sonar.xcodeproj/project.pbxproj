@@ -24,6 +24,7 @@
 		D9B8FB2C258E8C0900A1BC7A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D9B8FB2B258E8C0900A1BC7A /* KeychainAccess */; };
 		D9B8FB32258EAC8B00A1BC7A /* ApiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB31258EAC8B00A1BC7A /* ApiClient.swift */; };
 		D9B8FB37258EAD1500A1BC7A /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D9B8FB36258EAD1500A1BC7A /* Alamofire */; };
+		D9B8FB3C258EE5C200A1BC7A /* ApiOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8FB3B258EE5C200A1BC7A /* ApiOperation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		D9B8FB18258DF9C000A1BC7A /* OpenIDSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignInView.swift; sourceTree = "<group>"; };
 		D9B8FB1B258DFA7E00A1BC7A /* OpenIDSignOutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenIDSignOutView.swift; sourceTree = "<group>"; };
 		D9B8FB31258EAC8B00A1BC7A /* ApiClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiClient.swift; sourceTree = "<group>"; };
+		D9B8FB3B258EE5C200A1BC7A /* ApiOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiOperation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				D9B8FB31258EAC8B00A1BC7A /* ApiClient.swift */,
+				D9B8FB3B258EE5C200A1BC7A /* ApiOperation.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -208,6 +211,7 @@
 				D92924BD2584A92E00DDCE97 /* SonarApp.swift in Sources */,
 				D9B8FB32258EAC8B00A1BC7A /* ApiClient.swift in Sources */,
 				D9B8FB06258D504A00A1BC7A /* ResultExtensions.swift in Sources */,
+				D9B8FB3C258EE5C200A1BC7A /* ApiOperation.swift in Sources */,
 				D9B8FB1C258DFA7E00A1BC7A /* OpenIDSignOutView.swift in Sources */,
 				D9B8FB09258D528E00A1BC7A /* SignedInView.swift in Sources */,
 				D9B8FAFD258D466A00A1BC7A /* OpenIDView.swift in Sources */,
