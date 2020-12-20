@@ -5,7 +5,7 @@ use rocket::{
     State,
 };
 
-use crate::openid::{authority::Claims, validator::MSAValidator};
+use crate::openid::{Claims, MSAJwtValidator};
 
 pub struct User {
     id: String,
@@ -25,12 +25,12 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
         match request.headers().get_one("Authorization") {
             Some(auth_header) => {
                 let validator_state = try_outcome!(request
-                    .guard::<State<MSAValidator>>()
+                    .guard::<State<MSAJwtValidator>>()
                     .await
                     .map_failure(|_| {
                         (
                             Status::InternalServerError,
-                            AuthError::FailedToGetTokenValidator,
+                            AuthError::FailedToGetJwtValidator,
                         )
                     }));
 
@@ -49,7 +49,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
 
 #[derive(Debug)]
 pub enum AuthError {
-    FailedToGetTokenValidator,
+    FailedToGetJwtValidator,
     MissingAuthHeader,
     InvalidToken,
 }

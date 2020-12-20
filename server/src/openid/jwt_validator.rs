@@ -8,15 +8,15 @@ use crate::openid::{
     key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher},
 };
 
-pub type MSAValidator = Validator<MSAClaims, NetworkKeySetFetcher>;
+pub type MSAJwtValidator = JwtValidator<MSAClaims, NetworkKeySetFetcher>;
 
-impl MSAValidator {
-    pub fn new_msa() -> MSAValidator {
-        Validator::new(Authority::MSA)
+impl MSAJwtValidator {
+    pub fn new_msa() -> MSAJwtValidator {
+        JwtValidator::new(Authority::MSA)
     }
 }
 
-pub struct Validator<C: Claims, F: KeySetFetcher> {
+pub struct JwtValidator<C: Claims, F: KeySetFetcher> {
     /// The OpenID authority to use to validate.
     authority: Authority<C>,
     /// Used for fetching fresh key sets from the authority.
@@ -34,9 +34,9 @@ struct KeySetCache {
     last_updated: Instant,
 }
 
-impl<C: Claims> Validator<C, NetworkKeySetFetcher> {
+impl<C: Claims> JwtValidator<C, NetworkKeySetFetcher> {
     pub fn new(authority: Authority<C>) -> Self {
-        Validator::new_with_config(
+        JwtValidator::new_with_config(
             authority,
             NetworkKeySetFetcher::new(),
             Duration::from_secs(5 * 60),
@@ -44,7 +44,7 @@ impl<C: Claims> Validator<C, NetworkKeySetFetcher> {
     }
 }
 
-impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
+impl<C: Claims, F: KeySetFetcher> JwtValidator<C, F> {
     pub fn new_with_config(
         authority: Authority<C>,
         fetcher: F,
@@ -134,7 +134,7 @@ mod test {
     /// tests that the validator will refresh its keyset for an unrecognized
     /// signing key.
     async fn test_fresh_validator_refreshes_cache_and_validates() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -158,7 +158,7 @@ mod test {
     /// validation fails, and that a validation after a sufficient delay
     /// succeeds.
     async fn test_validation_fails_if_refresh_doesnt_return_key() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new_with_multiple(
                 KeySet::empty(),
@@ -193,7 +193,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an aud not matching ours is rejected.
     async fn test_validation_rejects_mismatched_aud() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -207,7 +207,7 @@ mod test {
     #[tokio::test]
     /// Tests that an expired JWT (via `exp`) is rejected.
     async fn test_validation_rejects_expired() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -223,7 +223,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an invalid (manually broken) signature is rejected.
     async fn test_validation_rejects_invalid_signature() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -253,7 +253,7 @@ mod test {
     #[tokio::test]
     /// Tests that a malformed JWT is rejected.
     async fn test_validation_rejects_malformed_jwt() {
-        let validator = Validator::new_with_config(
+        let validator = JwtValidator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),

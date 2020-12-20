@@ -27,6 +27,12 @@ impl KeySetFetcher for NetworkKeySetFetcher {
         // Need the `.compat()` wrappers around futures from `reqwest`, since
         // it uses Tokio 0.2 and we will be running on Tokio 0.3.
 
+        #[derive(Deserialize)]
+        struct Metadata {
+            #[serde(rename(deserialize = "jwks_uri"))]
+            key_roster_uri: String,
+        }
+
         let keys_uri = reqwest::get(&authority.metadata_path())
             .compat() // shim
             .await?
@@ -42,12 +48,6 @@ impl KeySetFetcher for NetworkKeySetFetcher {
             .compat() // shim
             .await
     }
-}
-
-#[derive(Deserialize)]
-struct Metadata {
-    #[serde(rename(deserialize = "jwks_uri"))]
-    key_roster_uri: String,
 }
 
 #[derive(Clone, Deserialize)]

@@ -9,13 +9,13 @@ mod openid;
 mod user;
 
 use location::{Coordinate, Location};
-use openid::validator::Validator;
+use openid::JwtValidator;
 use user::User;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
     rocket::ignite()
-        .manage(Validator::new_msa())
+        .manage(JwtValidator::new_msa())
         .mount("/", routes![get_a_location])
 }
 
