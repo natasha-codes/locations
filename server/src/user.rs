@@ -5,10 +5,7 @@ use rocket::{
     State,
 };
 
-use crate::openid::{
-    authority::{Authority, Claims, MSAClaims},
-    validator::MSAValidator,
-};
+use crate::openid::{authority::Claims, validator::MSAValidator};
 
 pub struct User {
     id: String,

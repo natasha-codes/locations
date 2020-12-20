@@ -11,7 +11,7 @@ use crate::openid::{
 pub type MSAValidator = Validator<MSAClaims, NetworkKeySetFetcher>;
 
 impl MSAValidator {
-    fn new_msa() -> Self {
+    pub fn new_msa() -> MSAValidator {
         Validator::new(Authority::MSA)
     }
 }
