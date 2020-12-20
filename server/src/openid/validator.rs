@@ -134,7 +134,7 @@ mod test {
     /// tests that the validator will refresh its keyset for an unrecognized
     /// signing key.
     async fn test_fresh_validator_refreshes_cache_and_validates() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -158,7 +158,7 @@ mod test {
     /// validation fails, and that a validation after a sufficient delay
     /// succeeds.
     async fn test_validation_fails_if_refresh_doesnt_return_key() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new_with_multiple(
                 KeySet::empty(),
@@ -193,7 +193,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an aud not matching ours is rejected.
     async fn test_validation_rejects_mismatched_aud() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -207,7 +207,7 @@ mod test {
     #[tokio::test]
     /// Tests that an expired JWT (via `exp`) is rejected.
     async fn test_validation_rejects_expired() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -223,7 +223,7 @@ mod test {
     #[tokio::test]
     /// Tests that a JWT with an invalid (manually broken) signature is rejected.
     async fn test_validation_rejects_invalid_signature() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -253,7 +253,7 @@ mod test {
     #[tokio::test]
     /// Tests that a malformed JWT is rejected.
     async fn test_validation_rejects_malformed_jwt() {
-        let mut validator = Validator::new_with_config(
+        let validator = Validator::new_with_config(
             utils::generate_authority("my::aud"),
             utils::TestKeySetFetcher::new(utils::generate_keyset("keyid")),
             Duration::from_secs(0),
@@ -328,7 +328,7 @@ mod test {
         pub struct TestKeySetFetcher {
             first: KeySet,
             rest: KeySet,
-            fetches: usize,
+            fetches: Mutex<usize>,
         }
 
         impl TestKeySetFetcher {
@@ -340,7 +340,7 @@ mod test {
                 Self {
                     first,
                     rest,
-                    fetches: 0,
+                    fetches: Mutex::new(0),
                 }
             }
         }
@@ -350,12 +350,13 @@ mod test {
             type Error = ();
 
             async fn fetch<C: Claims>(
-                &mut self,
+                &self,
                 _authority: &Authority<C>,
             ) -> Result<KeySet, Self::Error> {
-                self.fetches += 1;
+                let mut fetches = self.fetches.lock().await;
+                *fetches += 1;
 
-                if self.fetches == 1 {
+                if *fetches == 1 {
                     Ok(self.first.clone())
                 } else {
                     Ok(self.rest.clone())
