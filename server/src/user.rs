@@ -27,7 +27,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
     async fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         match request.headers().get_one("Authorization") {
             Some(auth_header) => {
-                let mut validator_state = try_outcome!(request
+                let validator_state = try_outcome!(request
                     .guard::<State<MSAValidator>>()
                     .await
                     .map_failure(|_| {

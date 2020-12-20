@@ -1,6 +1,7 @@
 use std::time::{Duration, Instant};
 
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
+use tokio::sync::{Mutex, MutexGuard};
 
 use crate::openid::{
     authority::{Authority, Claims, MSAClaims},
@@ -22,10 +23,15 @@ pub struct Validator<C: Claims, F: KeySetFetcher> {
     fetcher: F,
     /// The minimum interval between attempted key set refreshes.
     refresh_interval: Duration,
-    /// The currently-held set of keys from the authority.
-    key_set: KeySet,
-    /// When the key set was last updated.
-    key_set_last_updated: Instant,
+    /// A cached key set from the authority.
+    key_set_cache: Mutex<KeySetCache>,
+}
+
+struct KeySetCache {
+    /// The currently-cached keys.
+    keys: KeySet,
+    /// When the cache was last updated.
+    last_updated: Instant,
 }
 
 impl<C: Claims> Validator<C, NetworkKeySetFetcher> {
@@ -48,15 +54,17 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
             authority,
             fetcher,
             refresh_interval,
-            key_set: KeySet::empty(),
-            key_set_last_updated: Instant::now() - refresh_interval,
+            key_set_cache: Mutex::new(KeySetCache {
+                keys: KeySet::empty(),
+                last_updated: Instant::now() - refresh_interval,
+            }),
         }
     }
 
     /// Returns a boolean indicating if the given JWT validated, using the authority
     /// this validator was initialized with. May perform a keyset cache refresh if
     /// the JWT was signed with a key we don't have locally.
-    pub async fn validate(&mut self, jwt: &str) -> Option<C> {
+    pub async fn validate(&self, jwt: &str) -> Option<C> {
         if let Ok(header) = decode_header(jwt) {
             if let Some(thumbprint) = header.kid {
                 if let Some(key) = self.get_key(&thumbprint).await {
@@ -76,12 +84,14 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
         None
     }
 
-    async fn get_key(&mut self, thumbprint: &str) -> Option<Key> {
-        match self.key_set.key_with_thumbprint(&thumbprint) {
+    async fn get_key(&self, thumbprint: &str) -> Option<Key> {
+        let mut cache = self.key_set_cache.lock().await;
+
+        match cache.keys.key_with_thumbprint(&thumbprint) {
             Some(key) => Some(key),
             None => {
-                if self.try_refresh_key_set().await {
-                    self.key_set.key_with_thumbprint(&thumbprint)
+                if self.try_refresh_key_set(&mut cache).await {
+                    cache.keys.key_with_thumbprint(&thumbprint)
                 } else {
                     None
                 }
@@ -92,17 +102,17 @@ impl<C: Claims, F: KeySetFetcher> Validator<C, F> {
     /// Try and refresh the cached key set. Returns a boolean representing if the
     /// cache was refreshed or not. The cache could fail to refresh if a refresh
     /// was attempted recently, or if there was an error performing a refresh.
-    async fn try_refresh_key_set(&mut self) -> bool {
-        if Instant::now().duration_since(self.key_set_last_updated) >= self.refresh_interval {
+    async fn try_refresh_key_set<'a>(&self, cache_guard: &mut MutexGuard<'a, KeySetCache>) -> bool {
+        if Instant::now().duration_since(cache_guard.last_updated) >= self.refresh_interval {
             let maybe_key_set = self.fetcher.fetch(&self.authority).await;
 
             // Regardless of if we succeeded in getting a fresh key set above,
             // set the updated time so we don't try again for another 5m.
-            self.key_set_last_updated = Instant::now();
+            cache_guard.last_updated = Instant::now();
 
             match maybe_key_set {
                 Ok(fresh_key_set) => {
-                    self.key_set = fresh_key_set;
+                    cache_guard.keys = fresh_key_set;
                     true
                 }
                 Err(_) => false,
