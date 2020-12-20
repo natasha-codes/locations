@@ -1,11 +1,16 @@
-# Sonar's iOS client
+# Sonar iOS
 
-## Developing
+Sonar is a SwiftUI app, with dependency management via the Swift Package
+Manager, with authentication via OpenID Connect.
 
-Sonar uses the Swift Package Manager, so the only required step should be
-opening `Sonar.xcodeproj`.
+## Development
 
-## TODO
+The only required step to develop should be opening `Sonar.xcodeproj`.
 
-- Keychain persistence of AppAuth state
+## Design
 
+A tab view with tabs for each of:
+
+- A map with points for each contact, with clickable contact list
+- Contact list management - view/add/remove contacts
+- Settings

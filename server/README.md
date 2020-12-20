@@ -1,28 +1,47 @@
-# server
+# Sonar server
 
-## Developing locally
+Sonar server is a Rust project built on [Rocket](https://github.com/SergioBenitez/Rocket),
+with authentication via OpenID Connect.
 
-```bash
-# this requires Nix & direnv (you can use it without the global direnv hook
-# for manual loading of the env)
-# will make dependendencies specfied by flake.nix
-# available in your local env
-> source load_env
-> cargo run
+## Developing
+
+Sonar uses the `nightly` Rust toolchain, and requires at least:
+
+```sh
+> rustc --version
+rustc 1.50.0-nightly (7efc097c4 2020-12-12)
 ```
 
-## Architecture
+To check, run, or test, ensure you have `rustc` available as above and run:
 
-Rust in a container on Azure
+```sh
+> cargo check # Include --all-targets to also check the tests
+> cargo run
+> cargo test
+```
+
+### Nix build environment
+
+Sonar also has a build environment managed by a Nix flake. You can run
+
+```sh
+> nix develop
+```
+
+to load a Bash shell with the appropriate dependencies (e.g., `rustc`), and then
+run the build commands above. If you have `direnv` available, run:
+
+```sh
+> touch .use-flake
+```
+
+to opt into `direnv` integration with the flake.
+
+## Design
 
 Operations:
 
 - Upload my current location
-- Get my contacts' locations
 - Add a contact
 - Remove a contact
-
-## Links for the future
-
-Mongo and Rust: https://devblogs.microsoft.com/cosmosdb/mongodb-and-rust/
-Authentication in Rocket: https://medium.com/@james_32022/authentication-in-rocket-feb4f7223254
+- Get my contacts' locations
