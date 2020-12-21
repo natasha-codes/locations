@@ -55,8 +55,6 @@ pub struct KeySet {
     keys: Vec<Key>,
 }
 
-unsafe impl Send for KeySet {}
-
 impl KeySet {
     pub fn empty() -> Self {
         Self { keys: vec![] }
