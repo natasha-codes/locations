@@ -4,35 +4,27 @@ extern crate rocket;
 use rocket::routes;
 use rocket_contrib::json::Json;
 
-mod location;
 mod openid;
+mod storage;
 mod user;
 
-use location::{Coordinate, Location};
 use openid::JwtValidator;
 use user::User;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
+    foo().await;
+
     rocket::ignite()
         .manage(JwtValidator::new_msa())
         .mount("/", routes![get_a_location])
 }
 
-#[post("/hello")]
-async fn get_a_location(user: User) -> Json<Location> {
-    println!("User ID: {:?}", user.id());
+async fn foo() {
+    storage::db_client::DbClient::connect().await.expect("ahhh");
+}
 
-    Json(Location {
-        lat: Coordinate {
-            hour: 1,
-            min: 2,
-            second: 3,
-        },
-        long: Coordinate {
-            hour: 4,
-            min: 5,
-            second: 6,
-        },
-    })
+#[post("/hello")]
+async fn get_a_location(user: User) -> Json<String> {
+    Json(user.id().clone())
 }
