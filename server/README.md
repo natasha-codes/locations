@@ -39,9 +39,23 @@ to opt into `direnv` integration with the flake.
 
 ## Design
 
-Operations:
+### Operations
 
 - Upload my current location
 - Add a contact
 - Remove a contact
 - Get my contacts' locations
+
+### Data modeling
+
+User:
+
+```json
+{
+  "id": GUID,
+  "last_location": Location,
+  "last_update": Timestamp,
+  "shared_to": ListOfGuid,
+  "shared_with_me": ListOfGuid
+}
+```

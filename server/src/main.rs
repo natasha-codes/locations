@@ -4,12 +4,10 @@ extern crate rocket;
 use rocket::routes;
 use rocket_contrib::json::Json;
 
-mod openid;
+mod auth;
 mod storage;
-mod user;
 
-use openid::JwtValidator;
-use user::User;
+use auth::{openid::JwtValidator, AuthenticatedUser};
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -21,10 +19,12 @@ async fn rocket() -> rocket::Rocket {
 }
 
 async fn foo() {
-    storage::db_client::DbClient::connect().await.expect("ahhh");
+    storage::mongo_manager::MongoManager::new("mongodb://localhost:27017/")
+        .await
+        .expect("ahhh");
 }
 
 #[post("/hello")]
-async fn get_a_location(user: User) -> Json<String> {
+async fn get_a_location(user: AuthenticatedUser) -> Json<String> {
     Json(user.id().clone())
 }

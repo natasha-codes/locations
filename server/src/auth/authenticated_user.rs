@@ -5,20 +5,21 @@ use rocket::{
     State,
 };
 
-use crate::openid::{Claims, MSAJwtValidator};
+use super::{
+    error::AuthError,
+    openid::{Claims, MSAJwtValidator},
+};
 
-pub struct User {
-    id: String,
-}
+pub struct AuthenticatedUser(String);
 
-impl User {
+impl AuthenticatedUser {
     pub fn id(&self) -> &String {
-        &self.id
+        &self.0
     }
 }
 
 #[async_trait]
-impl<'a, 'r> FromRequest<'a, 'r> for User {
+impl<'a, 'r> FromRequest<'a, 'r> for AuthenticatedUser {
     type Error = AuthError;
 
     async fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
@@ -35,9 +36,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
                     }));
 
                 if let Some(token_claims) = validator_state.validate(auth_header).await {
-                    Outcome::Success(Self {
-                        id: token_claims.user_id(),
-                    })
+                    Outcome::Success(Self(token_claims.user_id()))
                 } else {
                     Outcome::Failure((Status::Unauthorized, AuthError::InvalidToken))
                 }
@@ -45,11 +44,4 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
             None => Outcome::Failure((Status::Unauthorized, AuthError::MissingAuthHeader)),
         }
     }
-}
-
-#[derive(Debug)]
-pub enum AuthError {
-    FailedToGetJwtValidator,
-    MissingAuthHeader,
-    InvalidToken,
 }

@@ -1,2 +1,2 @@
-pub mod db_client;
-pub mod location;
+pub mod models;
+pub mod mongo_manager;
