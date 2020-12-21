@@ -56,6 +56,6 @@ User:
   "last_location": Location,
   "last_update": Timestamp,
   "shared_to": ListOfGuid,
-  "shared_with_me": ListOfGuid
+  "shared_with_me_hint": ListOfGuid
 }
 ```
