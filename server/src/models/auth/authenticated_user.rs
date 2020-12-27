@@ -5,9 +5,9 @@ use rocket::{
     State,
 };
 
-use super::{
-    error::AuthError,
+use crate::auth::{
     openid::{Claims, MSAJwtValidator},
+    AuthError,
 };
 
 pub struct AuthenticatedUser(String);

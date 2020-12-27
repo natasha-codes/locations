@@ -1,30 +1,48 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::routes;
+use rocket::{http::Status, routes, State};
 use rocket_contrib::json::Json;
 
 mod auth;
+mod models;
 mod storage;
 
-use auth::{openid::JwtValidator, AuthenticatedUser};
+use auth::openid::JwtValidator;
+use models::auth::AuthenticatedUser;
+use storage::mongo_manager::MongoManager;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
-    foo().await;
-
     rocket::ignite()
         .manage(JwtValidator::new_msa())
-        .mount("/", routes![get_a_location])
+        .manage(
+            MongoManager::new("mongodb://localhost:27017")
+                .await
+                .expect("Failed to connect to Mongo"),
+        )
+        .mount("/", routes![refresh_my_contacts])
 }
 
-async fn foo() {
-    storage::mongo_manager::MongoManager::new("mongodb://localhost:27017/")
+#[get("/my/<id>/contacts")]
+async fn refresh_my_contacts(
+    id: String,
+    user: AuthenticatedUser,
+    mongo: State<'_, MongoManager>,
+) -> Result<Option<Json<String>>, Status> {
+    if user.id() != &id {
+        // Return `None`, i.e. a 404, if the user IDs don't match.
+        // Prefer this to a 401, since this way an attacker couldn't
+        // use this endpoint to fish for user IDs.
+        return Ok(None);
+    }
+
+    match mongo
+        .get_user_by_id(id)
         .await
-        .expect("ahhh");
-}
-
-#[post("/hello")]
-async fn get_a_location(user: AuthenticatedUser) -> Json<String> {
-    Json(user.id().clone())
+        .map_err(|_| Status::InternalServerError)?
+    {
+        Some(user) => {}
+        None => Ok(None),
+    }
 }
