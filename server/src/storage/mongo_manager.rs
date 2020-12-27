@@ -3,7 +3,7 @@ use std::time::Duration;
 pub use mongodb::error::Result as MongoResult;
 use mongodb::{bson, options::ClientOptions, Client, Collection, Database};
 
-use crate::models::storage::User;
+use crate::models::User;
 
 pub struct MongoManager {
     client: Client,
@@ -24,7 +24,7 @@ impl MongoManager {
         })
     }
 
-    pub async fn get_user_by_id(&self, id: String) -> MongoResult<Option<User>> {
+    pub async fn get_user_by_id(&self, id: &String) -> MongoResult<Option<User>> {
         if let Some(user_doc) = self
             .users_collection()
             .find_one(User::query_by_id(id), None)

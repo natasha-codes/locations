@@ -8,8 +8,7 @@ mod auth;
 mod models;
 mod storage;
 
-use auth::openid::JwtValidator;
-use models::auth::AuthenticatedUser;
+use auth::{openid::JwtValidator, AuthenticatedUser};
 use storage::mongo_manager::MongoManager;
 
 #[launch]
@@ -38,11 +37,11 @@ async fn refresh_my_contacts(
     }
 
     match mongo
-        .get_user_by_id(id)
+        .get_user_by_id(&id)
         .await
         .map_err(|_| Status::InternalServerError)?
     {
-        Some(user) => {}
+        Some(user) => Ok(Some(Json(id))),
         None => Ok(None),
     }
 }

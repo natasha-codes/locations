@@ -1,10 +1,9 @@
-use std::{
-    collections::HashSet,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::collections::HashSet;
 
 use mongodb::bson::{doc, Document};
 use serde::{Deserialize, Serialize};
+
+use crate::models::{Location, Timestamp};
 
 #[derive(Serialize, Deserialize)]
 pub struct User {
@@ -25,7 +24,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn query_by_id(id: String) -> Document {
+    pub fn query_by_id(id: &String) -> Document {
         doc! {
             "id": id
         }
@@ -41,24 +40,4 @@ impl User {
     pub fn allows_access(&self, other_user: &mut User) -> bool {
         self.shared_to.contains(&other_user.id)
     }
-}
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-struct Timestamp(u64);
-
-impl Timestamp {
-    pub fn now() -> Self {
-        Timestamp(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("SystemTime::now() is prior to the UNIX_EPOCH")
-                .as_secs(),
-        )
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Location {
-    latitude: f64,
-    longitude: f64,
 }
