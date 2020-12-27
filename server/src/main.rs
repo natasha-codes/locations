@@ -9,7 +9,8 @@ mod models;
 mod storage;
 
 use auth::{openid::JwtValidator, AuthenticatedUser};
-use storage::mongo_manager::MongoManager;
+use models::api::{Contact, OutgoingModel};
+use storage::MongoManager;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -28,7 +29,7 @@ async fn refresh_my_contacts(
     id: String,
     user: AuthenticatedUser,
     mongo: State<'_, MongoManager>,
-) -> Result<Option<Json<String>>, Status> {
+) -> Result<Option<OutgoingModel<Contact>>, Status> {
     if user.id() != &id {
         // Return `None`, i.e. a 404, if the user IDs don't match.
         // Prefer this to a 401, since this way an attacker couldn't
@@ -41,7 +42,7 @@ async fn refresh_my_contacts(
         .await
         .map_err(|_| Status::InternalServerError)?
     {
-        Some(user) => Ok(Some(Json(id))),
+        Some(user) => Ok(Some(Contact::new().into())),
         None => Ok(None),
     }
 }

@@ -1,1 +1,3 @@
-pub mod mongo_manager;
+mod mongo_manager;
+
+pub use mongo_manager::MongoManager;

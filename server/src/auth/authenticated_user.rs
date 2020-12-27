@@ -5,7 +5,7 @@ use rocket::{
     State,
 };
 
-use crate::auth::{
+use super::{
     openid::{Claims, MSAJwtValidator},
     AuthError,
 };

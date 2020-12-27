@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use tokio::sync::{Mutex, MutexGuard};
 
-use crate::auth::openid::{
+use super::{
     authority::{Authority, Claims, MSAClaims},
     key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher},
 };

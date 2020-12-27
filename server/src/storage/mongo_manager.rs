@@ -3,7 +3,7 @@ use std::time::Duration;
 pub use mongodb::error::Result as MongoResult;
 use mongodb::{bson, options::ClientOptions, Client, Collection, Database};
 
-use crate::models::User;
+use crate::models::storage::User;
 
 pub struct MongoManager {
     client: Client,
