@@ -2,7 +2,6 @@
 extern crate rocket;
 
 use rocket::{http::Status, routes, State};
-use rocket_contrib::json::Json;
 
 mod auth;
 mod models;
@@ -11,6 +10,8 @@ mod storage;
 use auth::{openid::JwtValidator, AuthenticatedUser};
 use models::api::{Contact, OutgoingModel};
 use storage::MongoManager;
+
+type Result<T> = std::result::Result<T, Status>;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -29,7 +30,7 @@ async fn refresh_my_contacts(
     id: String,
     user: AuthenticatedUser,
     mongo: State<'_, MongoManager>,
-) -> Result<Option<OutgoingModel<Contact>>, Status> {
+) -> Result<Option<OutgoingModel<Contact>>> {
     if user.id() != &id {
         // Return `None`, i.e. a 404, if the user IDs don't match.
         // Prefer this to a 401, since this way an attacker couldn't

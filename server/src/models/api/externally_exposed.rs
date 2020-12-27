@@ -1,7 +1,5 @@
 use serde::Serialize;
 
-use super::OutgoingModel;
-
 /// A wrapper trait around a serializable type that allows us to explicitly
 /// restrict what types are exposed in our JSON API.
 ///
