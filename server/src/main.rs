@@ -8,10 +8,11 @@ mod models;
 mod storage;
 
 use auth::{openid::JwtValidator, AuthenticatedUser};
-use models::api::{Contact, OutgoingModel};
+use models::api::{Contact, ExternallyExposed, OutgoingModel};
 use storage::MongoManager;
 
-type Result<T> = std::result::Result<T, Status>;
+type MaybeRouteResult<T: ExternallyExposed> = std::result::Result<Option<OutgoingModel<T>>, Status>;
+type RouteResult<T: ExternallyExposed> = std::result::Result<OutgoingModel<T>, Status>;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -30,11 +31,10 @@ async fn refresh_my_contacts(
     id: String,
     user: AuthenticatedUser,
     mongo: State<'_, MongoManager>,
-) -> Result<Option<OutgoingModel<Contact>>> {
+) -> MaybeRouteResult<Contact> {
     if user.id() != &id {
-        // Return `None`, i.e. a 404, if the user IDs don't match.
-        // Prefer this to a 401, since this way an attacker couldn't
-        // use this endpoint to fish for user IDs.
+        // Return `None`, i.e. a 404, if the user IDs don't match. Prefer this
+        // to an auth error, so as not to leak user IDs.
         return Ok(None);
     }
 
