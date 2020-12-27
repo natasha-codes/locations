@@ -35,6 +35,10 @@ impl User {
     pub fn last_location(&self) -> Location {
         self.last_location
     }
+
+    pub fn last_update(&self) -> Timestamp {
+        self.last_update
+    }
 }
 
 impl User {
@@ -45,12 +49,14 @@ impl User {
     }
 
     /// Update this user's location.
+    #[allow(dead_code)]
     pub fn update_location(&mut self, location: Location) {
         self.last_location = location;
         self.last_update = timestamp_now();
     }
 
     /// Checks whether `other_user` is allowed to access this user.
+    #[allow(dead_code)]
     pub fn allows_access(&self, other_user: &mut User) -> bool {
         self.shared_to.contains(&other_user.id)
     }

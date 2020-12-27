@@ -8,11 +8,12 @@ mod models;
 mod storage;
 
 use auth::{openid::JwtValidator, AuthenticatedUser};
-use models::api::{Contact, ExternallyExposed, OutgoingModel};
+use models::api::{Contact, OutgoingModel};
 use storage::MongoManager;
 
-type MaybeRouteResult<T: ExternallyExposed> = std::result::Result<Option<OutgoingModel<T>>, Status>;
-type RouteResult<T: ExternallyExposed> = std::result::Result<OutgoingModel<T>, Status>;
+type MaybeRouteResult<T> = std::result::Result<Option<OutgoingModel<T>>, Status>;
+#[allow(dead_code)]
+type RouteResult<T> = std::result::Result<OutgoingModel<T>, Status>;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -23,11 +24,11 @@ async fn rocket() -> rocket::Rocket {
                 .await
                 .expect("Failed to connect to Mongo"),
         )
-        .mount("/", routes![refresh_my_contacts])
+        .mount("/", routes![get_my_location])
 }
 
-#[get("/my/<id>/contacts")]
-async fn refresh_my_contacts(
+#[get("/my/<id>/location")]
+async fn get_my_location(
     id: String,
     user: AuthenticatedUser,
     mongo: State<'_, MongoManager>,
@@ -43,7 +44,7 @@ async fn refresh_my_contacts(
         .await
         .map_err(|_| Status::InternalServerError)?
     {
-        Some(user) => Ok(Some(Contact::new().into())),
+        Some(user) => Ok(Some(Contact::from(user).into())),
         None => Ok(None),
     }
 }
