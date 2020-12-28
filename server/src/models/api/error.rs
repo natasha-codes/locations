@@ -7,7 +7,22 @@ use rocket::{
 use crate::{auth::AuthError, storage::MongoError};
 
 /// An enum wrapping sub-error types and mapping them to an HTTP status code,
-/// to simplify exposing errors through the API layer.
+/// to simplify returning errors from a route handler.
+///
+/// This type implements `From` for its wrapped sub-types. Consequently, when
+/// it is used as the top-level error type for a route handler, operations
+/// within the handler that produce `Result<T, SubErrorType>` can use `?` to
+/// early-return. E.g.,:
+///
+/// ```rust
+/// fn get_auth_tokne() -> Result<String, AuthError> { ... }
+///
+/// #[get("/route")]
+/// async fn handler() -> Result<(), ApiError> {
+///    let auth_token = get_auth_result()?;
+///    ...
+/// }
+/// ```
 pub enum ApiError {
     Auth(AuthError),
     Mongo(MongoError),
