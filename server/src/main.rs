@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{http::Status, routes, State};
+use rocket::{routes, State};
 
 mod auth;
 mod models;
 mod storage;
 
-use auth::{openid::JwtValidator, AuthenticatedUser};
-use models::api::{Contact, OutgoingModel};
+use auth::{openid::JwtValidator, AuthError, AuthenticatedUser};
+use models::api::{ApiError, Contact, OutgoingModel};
 use storage::MongoManager;
 
-type MaybeRouteResult<T> = std::result::Result<Option<OutgoingModel<T>>, Status>;
+type MaybeRouteResult<T> = std::result::Result<Option<OutgoingModel<T>>, ApiError>;
 #[allow(dead_code)]
-type RouteResult<T> = std::result::Result<OutgoingModel<T>, Status>;
+type RouteResult<T> = std::result::Result<OutgoingModel<T>, ApiError>;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -27,23 +27,12 @@ async fn rocket() -> rocket::Rocket {
         .mount("/", routes![get_my_location])
 }
 
-#[get("/my/<id>/location")]
+#[get("/my/location")]
 async fn get_my_location(
-    id: String,
-    user: AuthenticatedUser,
+    user: Result<AuthenticatedUser, AuthError>,
     mongo: State<'_, MongoManager>,
 ) -> MaybeRouteResult<Contact> {
-    if user.id() != &id {
-        // Return `None`, i.e. a 404, if the user IDs don't match. Prefer this
-        // to an auth error, so as not to leak user IDs.
-        return Ok(None);
-    }
-
-    match mongo
-        .get_user_by_id(&id)
-        .await
-        .map_err(|_| Status::InternalServerError)?
-    {
+    match mongo.get_user_by_id(user?.id()).await? {
         Some(user) => Ok(Some(Contact::from(user).into())),
         None => Ok(None),
     }

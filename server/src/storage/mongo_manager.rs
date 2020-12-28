@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-pub use mongodb::error::Result as MongoResult;
+pub use mongodb::error::{Error as MongoError, Result as MongoResult};
 use mongodb::{bson, options::ClientOptions, Client, Collection, Database};
 
 use crate::models::storage::User;
