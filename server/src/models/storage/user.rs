@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::common::{timestamp_now, Location, Timestamp};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     /// A unique ID for this user.
     id: String,

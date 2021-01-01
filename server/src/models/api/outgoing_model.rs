@@ -4,19 +4,19 @@ use rocket::{
 };
 use rocket_contrib::json::Json;
 
-use super::ExternallyExposed;
+use super::ExternallyExposedOutgoing;
 
 /// A struct wrapping `ExternallyExposed` data to allow it to easily be used as
 /// the result of a route handler.
-pub struct OutgoingModel<T: ExternallyExposed>(T);
+pub struct OutgoingModel<T: ExternallyExposedOutgoing>(T);
 
-impl<'r, 'o: 'r, T: ExternallyExposed> Responder<'r, 'o> for OutgoingModel<T> {
+impl<'r, 'o: 'r, T: ExternallyExposedOutgoing> Responder<'r, 'o> for OutgoingModel<T> {
     fn respond_to(self, request: &'r Request<'_>) -> response::Result<'o> {
         Json(self.0).respond_to(request)
     }
 }
 
-impl<T: ExternallyExposed> From<T> for OutgoingModel<T> {
+impl<T: ExternallyExposedOutgoing> From<T> for OutgoingModel<T> {
     fn from(t: T) -> Self {
         Self(t)
     }

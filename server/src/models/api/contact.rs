@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::ExternallyExposed;
+use super::ExternallyExposedOutgoing;
 use crate::models::{
     common::{Location, Timestamp},
     storage::User,
@@ -25,4 +25,4 @@ impl From<User> for Contact {
     }
 }
 
-impl ExternallyExposed for Contact {}
+impl ExternallyExposedOutgoing for Contact {}
