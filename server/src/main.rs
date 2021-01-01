@@ -12,6 +12,7 @@ use models::{
     api::{ApiError, Contact, Empty, IncomingModel, OutgoingModel},
     common::Location,
 };
+use rocket_contrib::json::Json;
 use storage::MongoManager;
 
 type MaybeRouteResult<T> = std::result::Result<Option<OutgoingModel<T>>, ApiError>;
@@ -26,7 +27,7 @@ async fn rocket() -> rocket::Rocket {
                 .await
                 .expect("Failed to connect to Mongo"),
         )
-        .mount("/", routes![get_my_location])
+        .mount("/", routes![get_my_location, upload_my_location])
 }
 
 #[post("/my/location", data = "<location>")]
