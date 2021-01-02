@@ -5,6 +5,8 @@ with authentication via OpenID Connect.
 
 ## Developing
 
+### Rust
+
 Sonar uses the `nightly` Rust toolchain, and requires at least:
 
 ```sh
@@ -20,9 +22,42 @@ To check, run, or test, ensure you have `rustc` available as above and run:
 > cargo test
 ```
 
+### Mongo
+
+Sonar uses [MongoDB](https://docs.mongodb.com) as its database. To run, first
+make sure you have a Mongo instance running and that the correct connection
+string (e.g., `"mongodb://localhost:27017"`is passed during startup.
+
+If you installed Mongo via Homebrew, you can run:
+
+```sh
+$ mongod --config </usr/local/etc/mongod.conf | path-to-config>
+```
+
+to start a Mongo instance. The config specifies, for example, the binding IP
+(e.g., `localhost`) and port (defaults to `27017`).
+
+You can also use the Mongo shell to inspect or ad-hoc modify the Mongo store
+during development, e.g.:
+
+```sh
+$ mongo
+> show dbs
+sonar ...
+> use sonar
+switch to db sonar
+> show collections
+users
+> db.users.find()
+# prints the contents of the `users` collection
+> db.users.drop()
+# delete the `users` collection
+```
+
 ### Nix build environment
 
-Sonar also has a build environment managed by a Nix flake. You can run
+Sonar also has (will eventually have) a build environment managed by a Nix
+flake. You can run
 
 ```sh
 > nix develop
