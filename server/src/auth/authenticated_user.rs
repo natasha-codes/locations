@@ -41,7 +41,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthenticatedUser {
                     Outcome::Failure((Status::Unauthorized, AuthError::InvalidToken))
                 }
             }
-            None => Outcome::Failure((Status::Unauthorized, AuthError::MissingAuthHeader)),
+            None => Outcome::Failure((Status::BadRequest, AuthError::MissingAuthHeader)),
         }
     }
 }
