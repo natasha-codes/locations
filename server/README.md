@@ -3,7 +3,7 @@
 Sonar server is a Rust project built on [Rocket](https://github.com/SergioBenitez/Rocket),
 with authentication via OpenID Connect.
 
-## Developing
+## Dependencies
 
 ### Rust
 
@@ -27,6 +27,32 @@ To check, run, or test, ensure you have `rustc` available as above and run:
 Sonar uses [MongoDB](https://docs.mongodb.com) as its database. To run, first
 make sure you have a Mongo instance running and that the correct connection
 string (e.g., `"mongodb://localhost:27017"`is passed during startup.
+
+See below for some notes on developing with Mongo.
+
+### Nix build environment
+
+Sonar also has (will eventually have) a build environment managed by a Nix
+flake. You can run
+
+```sh
+> nix develop
+```
+
+to load a Bash shell with the appropriate dependencies (e.g., `rustc`), and then
+run the build commands above. If you have `direnv` available, run:
+
+```sh
+> touch .use-flake
+```
+
+to opt into `direnv` integration with the flake.
+
+## Development
+
+Some handy tips while developing!
+
+### Mongo
 
 If you installed Mongo via Homebrew, you can run:
 
@@ -54,25 +80,7 @@ users
 # delete the `users` collection
 ```
 
-### Nix build environment
-
-Sonar also has (will eventually have) a build environment managed by a Nix
-flake. You can run
-
-```sh
-> nix develop
-```
-
-to load a Bash shell with the appropriate dependencies (e.g., `rustc`), and then
-run the build commands above. If you have `direnv` available, run:
-
-```sh
-> touch .use-flake
-```
-
-to opt into `direnv` integration with the flake.
-
-## Design
+## Planning scratchpad
 
 ### Operations
 
