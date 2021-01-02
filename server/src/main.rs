@@ -30,13 +30,17 @@ async fn rocket() -> rocket::Rocket {
 
 #[post("/my/location", data = "<location>")]
 async fn upload_my_location(
-    _user: Result<AuthenticatedUser, AuthError>,
-    _mongo: State<'_, MongoManager>,
+    user_auth: Result<AuthenticatedUser, AuthError>,
+    mongo: State<'_, MongoManager>,
     location: IncomingModel<'_, Location>,
 ) -> RouteResult<Empty> {
-    println!("Location: {:?}", *location);
+    let my_user_id = user_auth?.id();
 
-    Ok(().into())
+    mongo
+        .update_user_location(&my_user_id, *location)
+        .await
+        .map(|void| void.into())
+        .map_err(|err| err.into())
 }
 
 #[get("/my/location")]
