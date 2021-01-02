@@ -12,10 +12,8 @@ use models::{
     api::{ApiError, Contact, Empty, IncomingModel, OutgoingModel},
     common::Location,
 };
-use rocket_contrib::json::Json;
 use storage::MongoManager;
 
-type MaybeRouteResult<T> = std::result::Result<Option<OutgoingModel<T>>, ApiError>;
 type RouteResult<T> = std::result::Result<OutgoingModel<T>, ApiError>;
 
 #[launch]
@@ -43,19 +41,13 @@ async fn upload_my_location(
 
 #[get("/my/location")]
 async fn get_my_location(
-    user: Result<AuthenticatedUser, AuthError>,
+    user_auth: Result<AuthenticatedUser, AuthError>,
     mongo: State<'_, MongoManager>,
-) -> MaybeRouteResult<Contact> {
-    match mongo.get_user_by_id(user?.id()).await? {
-        Some(user) => {
-            println!("Found user: {:?}", user);
+) -> RouteResult<Contact> {
+    // Early-returns if unable to auth the user.
+    let my_user_id = user_auth?.id();
 
-            Ok(Some(Contact::from(user).into()))
-        }
-        None => {
-            println!("No user found!");
+    let my_user = mongo.get_user_by_id(&my_user_id).await?;
 
-            Ok(None)
-        }
-    }
+    Ok(Contact::from(my_user).into())
 }

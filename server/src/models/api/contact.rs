@@ -1,26 +1,21 @@
 use serde::Serialize;
 
 use super::ExternallyExposedOutgoing;
-use crate::models::{
-    common::{Location, Timestamp},
-    storage::User,
-};
+use crate::models::{common::Ping, storage::User};
 
 #[derive(Serialize)]
 pub struct Contact {
     id: String,
     display_name: String,
-    last_location: Location,
-    last_update: Timestamp,
+    last_ping: Option<Ping>,
 }
 
 impl From<User> for Contact {
     fn from(stored_user: User) -> Self {
         Contact {
-            id: stored_user.id().clone(),
-            display_name: stored_user.display_name().clone(),
-            last_location: stored_user.last_location(),
-            last_update: stored_user.last_update(),
+            id: String::from(stored_user.id()),
+            display_name: String::from(stored_user.display_name()),
+            last_ping: stored_user.last_ping().clone(),
         }
     }
 }

@@ -1,3 +1,5 @@
+mod storable;
 mod user;
 
-pub use user::*;
+pub use storable::Storable;
+pub use user::User;

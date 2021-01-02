@@ -1,5 +1,3 @@
-mod location;
-mod timestamp;
+mod ping;
 
-pub use location::*;
-pub use timestamp::*;
+pub use ping::{Location, Ping};

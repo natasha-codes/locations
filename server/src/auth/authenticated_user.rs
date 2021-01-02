@@ -13,8 +13,8 @@ use super::{
 pub struct AuthenticatedUser(String);
 
 impl AuthenticatedUser {
-    pub fn id(&self) -> &String {
-        &self.0
+    pub fn id(self) -> String {
+        self.0
     }
 }
 
