@@ -50,7 +50,6 @@ impl MongoManager {
 
     /// Updates the location of the user with the given `id`. If no user exists,
     /// one is created.
-    #[allow(dead_code)]
     pub async fn update_user_location(&self, id: &str, location: Location) -> MongoResult<()> {
         let user = self.get_user_by_id(id).await?;
         let updated_user = user.update_location(location);

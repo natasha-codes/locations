@@ -31,9 +31,21 @@ pub enum ApiError {
 impl<'r, 'o: 'r> Responder<'r, 'o> for ApiError {
     fn respond_to(self, req: &'r Request<'_>) -> ResponderResult<'o> {
         match self {
-            ApiError::Auth(AuthError::MissingAuthHeader) => Status::BadRequest,
-            ApiError::Auth(_) => Status::Unauthorized,
-            ApiError::Mongo(_) => Status::InternalServerError,
+            ApiError::Auth(AuthError::MissingAuthHeader) => {
+                eprintln!("Got an auth error: missing auth header");
+
+                Status::BadRequest
+            }
+            ApiError::Auth(auth_err) => {
+                eprintln!("Got an auth error: {:?}", auth_err);
+
+                Status::Unauthorized
+            }
+            ApiError::Mongo(mongo_err) => {
+                eprintln!("Got a Mongo error: {:?}", mongo_err);
+
+                Status::InternalServerError
+            }
         }
         .respond_to(req)
     }
