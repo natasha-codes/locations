@@ -80,7 +80,7 @@
             nativeBuildInputs = with pkgs; with stdenv; [ rust ]
             # ref - https://stackoverflow.com/a/51161923
             ++ lib.optionals isDarwin [ darwin.apple_sdk.frameworks.Security ]
-            ++ lib.optionals isLinux [ pkg-config openssl ];
+            ++ lib.optionals isLinux [ cacert pkg-config openssl ];
 
             # based on testing on my machine this may not be necessary but left
             # in for now biasing towards explicitness
