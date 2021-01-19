@@ -10,16 +10,21 @@ import SwiftUI
 struct SignedInView: View {
     let apiClient: ApiClient
 
+    @State private var tokenMessage: String = "Is there a token?"
+
     var body: some View {
-        Button("Get a token") {
-            self.apiClient.perform { result in
-                switch result {
-                case .success:
-                    print("API client action success")
-                case .failure(let err):
-                    print("API client action error: \(err)")
+        VStack(spacing: 48) {
+            Button("Try and get a token") {
+                self.apiClient.perform { result in
+                    switch result {
+                    case .success:
+                        self.tokenMessage = "Yes!"
+                    case let .failure(err):
+                        self.tokenMessage = "Nope, error code: \(err)"
+                    }
                 }
             }
+            Text(self.tokenMessage)
         }
     }
 }
