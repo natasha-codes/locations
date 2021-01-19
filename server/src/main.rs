@@ -2,19 +2,17 @@
 extern crate rocket;
 
 use rocket::{routes, State};
+use rocket_contrib::json::Json;
 
 mod auth;
 mod models;
+mod routes;
 mod storage;
 
 use auth::{openid::JwtValidator, AuthError, AuthenticatedUser};
-use models::{
-    api::{ApiError, Contact, Empty, IncomingModel, OutgoingModel},
-    common::Location,
-};
+use models::{api::Contact, common::Location};
+use routes::{RouteResult, ToRouteResult};
 use storage::MongoManager;
-
-type RouteResult<T> = std::result::Result<OutgoingModel<T>, ApiError>;
 
 #[launch]
 async fn rocket() -> rocket::Rocket {
@@ -32,15 +30,15 @@ async fn rocket() -> rocket::Rocket {
 async fn upload_my_location(
     user_auth: Result<AuthenticatedUser, AuthError>,
     mongo: State<'_, MongoManager>,
-    location: IncomingModel<'_, Location>,
-) -> RouteResult<Empty> {
+    location: Json<Location>,
+) -> RouteResult<()> {
+    // Early-returns if unable to auth the user.
     let my_user_id = user_auth?.id();
 
     mongo
         .update_user_location(&my_user_id, *location)
         .await
-        .map(|void| void.into())
-        .map_err(|err| err.into())
+        .to_route_result()
 }
 
 #[get("/my/location")]
@@ -53,5 +51,5 @@ async fn get_my_location(
 
     let my_user = mongo.get_user_by_id(&my_user_id).await?;
 
-    Ok(Contact::from(my_user).into())
+    Contact::from(my_user).to_route_result()
 }

@@ -5,8 +5,6 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::api::ExternallyExposedIncoming;
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Ping {
     /// Location of the ping.
@@ -39,5 +37,3 @@ pub struct Location {
     latitude: f64,
     longitude: f64,
 }
-
-impl ExternallyExposedIncoming<'_> for Location {}
