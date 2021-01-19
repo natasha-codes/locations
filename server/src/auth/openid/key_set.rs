@@ -2,7 +2,7 @@ use rocket::async_trait;
 use serde::Deserialize;
 use tokio_compat_02::FutureExt;
 
-use crate::openid::authority::{Authority, Claims};
+use super::authority::{Authority, Claims};
 
 #[async_trait]
 pub trait KeySetFetcher {

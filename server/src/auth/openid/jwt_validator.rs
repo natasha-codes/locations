@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use tokio::sync::{Mutex, MutexGuard};
 
-use crate::openid::{
+use super::{
     authority::{Authority, Claims, MSAClaims},
     key_set::{Key, KeySet, KeySetFetcher, NetworkKeySetFetcher},
 };
@@ -273,8 +273,6 @@ mod test {
         use jsonwebtoken::{encode, EncodingKey, Header};
         use rocket::async_trait;
         use serde::{Deserialize, Serialize};
-
-        use crate::openid::key_set::Key;
 
         pub fn generate_authority(aud: &'static str) -> Authority<TestClaims> {
             Authority::new("https://example.com", aud)
