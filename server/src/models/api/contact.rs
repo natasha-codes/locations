@@ -1,6 +1,5 @@
 use serde::Serialize;
 
-use super::ExternallyExposedOutgoing;
 use crate::models::{common::Ping, storage::User};
 
 #[derive(Serialize)]
@@ -19,5 +18,3 @@ impl From<User> for Contact {
         }
     }
 }
-
-impl ExternallyExposedOutgoing for Contact {}
